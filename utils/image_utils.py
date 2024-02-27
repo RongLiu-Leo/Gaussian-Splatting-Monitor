@@ -10,6 +10,7 @@
 #
 
 import torch
+import matplotlib.pyplot as plt
 
 def mse(img1, img2):
     return (((img1 - img2)) ** 2).view(img1.shape[0], -1).mean(1, keepdim=True)
@@ -18,7 +19,7 @@ def psnr(img1, img2):
     mse = (((img1 - img2)) ** 2).view(img1.shape[0], -1).mean(1, keepdim=True)
     return 20 * torch.log10(1.0 / torch.sqrt(mse))
 
-def compute_normal_map(depth_map):
+def depth_to_normal(depth_map, camera):
     # depth_map = depth_map[None, ...]
 
     sobel_x = torch.tensor([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]).float().unsqueeze(0).unsqueeze(0).cuda()
@@ -73,3 +74,9 @@ def unproject_depth_map(camera, depth_map):
     points_world = points_world[:, :, :3] / points_world[:, :, 3:]
     
     return points_world
+
+def colormap(map, cmap="magma"):
+    colors = plt.cm.get_cmap(cmap).colors
+    start_color = torch.tensor(colors[0]).view(3, 1, 1).to(map.device)
+    end_color = torch.tensor(colors[-1]).view(3, 1, 1).to(map.device)
+    return (1 - map) * start_color + map * end_color

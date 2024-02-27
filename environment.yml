@@ -1,4 +1,4 @@
-name: gs
+name: gs_studio
 channels:
   - pytorch
   - conda-forge
@@ -16,3 +16,4 @@ dependencies:
     - submodules/diff-gaussian-rasterization
     - submodules/simple-knn
     - open3d
+    - matplotlib

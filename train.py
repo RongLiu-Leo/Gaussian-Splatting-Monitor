@@ -19,7 +19,7 @@ from scene import Scene, GaussianModel
 from utils.general_utils import safe_state
 import uuid
 from tqdm import tqdm
-from utils.image_utils import psnr
+from utils.image_utils import psnr, colormap, depth_to_normal
 from argparse import ArgumentParser, Namespace
 from arguments import ModelParams, PipelineParams, OptimizationParams
 try:
@@ -54,9 +54,25 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         while network_gui.conn != None:
             try:
                 net_image_bytes = None
-                custom_cam, do_training, pipe.convert_SHs_python, pipe.compute_cov3D_python, keep_alive, scaling_modifer = network_gui.receive()
+                custom_cam, do_training, pipe.convert_SHs_python, pipe.compute_cov3D_python, keep_alive, scaling_modifer, render_mode = network_gui.receive()
                 if custom_cam != None:
-                    net_image = render(custom_cam, gaussians, pipe, background, scaling_modifer)["render"]
+                    render_pkg = render(custom_cam, gaussians, pipe, background, scaling_modifer)   
+                    if render_mode == 1:
+                        net_image = render_pkg["alpha"]
+                        net_image = (net_image - net_image.min()) / (net_image.max() - net_image.min())
+                    elif render_mode == 2:
+                        net_image = render_pkg["mean_depth"]
+                        net_image = (net_image - net_image.min()) / (net_image.max() - net_image.min())
+                    elif render_mode == 3:
+                        net_image = render_pkg["median_depth"]
+                        net_image = (net_image - net_image.min()) / (net_image.max() - net_image.min())
+                    elif render_mode == 4:
+                        net_image = depth_to_normal(render_pkg["median_depth"], viewpoint_cam.world_view_transform[:3, :3].T)
+                        net_image = (net_image+1)/2
+                    else:
+                        net_image = render_pkg["render"]
+                    if net_image.shape[0]==1:
+                        net_image = colormap(net_image)
                     net_image_bytes = memoryview((torch.clamp(net_image, min=0, max=1.0) * 255).byte().permute(1, 2, 0).contiguous().cpu().numpy())
                 network_gui.send(net_image_bytes, dataset.source_path)
                 if do_training and ((iteration < int(opt.iterations)) or not keep_alive):
@@ -133,11 +149,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
 def prepare_output_and_logger(args):    
     if not args.model_path:
-        if os.getenv('OAR_JOB_ID'):
-            unique_str=os.getenv('OAR_JOB_ID')
-        else:
-            unique_str = str(uuid.uuid4())
-        args.model_path = os.path.join("./output/", unique_str[0:10])
+        args.model_path = os.path.join("./output/", os.path.basename(args.source_path))
         
     # Set up output folder
     print("Output folder: {}".format(args.model_path))

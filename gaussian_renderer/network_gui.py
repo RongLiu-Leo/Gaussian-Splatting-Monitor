@@ -77,10 +77,11 @@ def receive():
             full_proj_transform = torch.reshape(torch.tensor(message["view_projection_matrix"]), (4, 4)).cuda()
             full_proj_transform[:,1] = -full_proj_transform[:,1]
             custom_cam = MiniCam(width, height, fovy, fovx, znear, zfar, world_view_transform, full_proj_transform)
+            render_mode = message["render_mode"]
         except Exception as e:
             print("")
             traceback.print_exc()
             raise e
-        return custom_cam, do_training, do_shs_python, do_rot_scale_python, keep_alive, scaling_modifier
+        return custom_cam, do_training, do_shs_python, do_rot_scale_python, keep_alive, scaling_modifier, render_mode
     else:
-        return None, None, None, None, None, None
+        return None, None, None, None, None, None, None
