@@ -71,7 +71,7 @@ python viewer.py -m <path to trained model> # View the trained model
 
 ## Interactive Viewers
 Remote Viewer and Gaussian Viewer are integrated into one Viewer and it is driven by viewer.py.
-We provide pre-built binaries for Windows [here]() for an efficient setup. If you want to build and compile the SIBR Viewer, the requirements and instructions can be found [here]().
+We provide pre-built binaries for Windows [here]() for an efficient setup. If you want to build and compile the SIBR Viewer, the requirements and instructions can be found [here](https://github.com/graphdeco-inria/gaussian-splatting?tab=readme-ov-file#interactive-viewers).
 `
 
 ## Processing your own Scenes
