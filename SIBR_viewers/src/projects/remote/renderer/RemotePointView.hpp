@@ -25,6 +25,7 @@
 # include <core/graphics/Texture.hpp>
 #include <projects/remote/json.hpp>
 #include <thread>
+#include <boost/asio.hpp>
 using json = nlohmann::json;
 
 namespace sibr { 
@@ -38,6 +39,8 @@ namespace sibr {
 		SIBR_CLASS_PTR(RemotePointView);
 
 	public:
+
+		void set_render_items(boost::asio::ip::tcp::socket& sock);
 
 		RemotePointView(std::string ip, uint port);
 
@@ -90,6 +93,7 @@ namespace sibr {
 		bool _keepAlive = true;
 		bool _showSfM = false;
 		int _item_current = 0;
+		std::vector<std::string> _renderItems;
 
 		float _scalingModifier = 1.0f;
 

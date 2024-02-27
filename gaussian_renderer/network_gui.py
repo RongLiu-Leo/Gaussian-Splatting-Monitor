@@ -13,6 +13,7 @@ import torch
 import traceback
 import socket
 import json
+import struct
 from scene.cameras import MiniCam
 
 host = "127.0.0.1"
@@ -31,14 +32,25 @@ def init(wish_host, wish_port):
     listener.listen()
     listener.settimeout(0)
 
-def try_connect():
+def send_render_items(conn, string_list):
+    # Serialize the list of strings to JSON
+    serialized_data = json.dumps(string_list)
+    # Convert the serialized data to bytes
+    bytes_data = serialized_data.encode('utf-8')
+    # Send the length of the serialized data first
+    conn.sendall(struct.pack('I', len(bytes_data)))
+    # Send the actual serialized data
+    conn.sendall(bytes_data)
+
+def try_connect(render_items):
     global conn, addr, listener
     try:
         conn, addr = listener.accept()
         print(f"\nConnected by {addr}")
         conn.settimeout(None)
+        send_render_items(conn, render_items)
     except Exception as inst:
-        pass
+        raise inst
             
 def read():
     global conn

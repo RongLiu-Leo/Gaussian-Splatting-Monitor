@@ -77,3 +77,23 @@ def colormap(map, cmap="magma"):
     start_color = torch.tensor(colors[0]).view(3, 1, 1).to(map.device)
     end_color = torch.tensor(colors[-1]).view(3, 1, 1).to(map.device)
     return (1 - map) * start_color + map * end_color
+
+def render_net_image(render_pkg, render_items, render_mode):
+    render_support = ['rgb', 'depth', 'alpha', 'normal']
+    output = render_items[render_mode]
+    if output not in render_support:
+        raise NotImplementedError(f'Render {output} not implemented yet.')
+    if output == 'alpha':
+        net_image = render_pkg["alpha"]
+        net_image = (net_image - net_image.min()) / (net_image.max() - net_image.min())
+    elif output == 'depth':
+        net_image = render_pkg["mean_depth"]
+        net_image = (net_image - net_image.min()) / (net_image.max() - net_image.min())
+    elif output == 'normal':
+        net_image = depth_to_normal(render_pkg["mean_depth"]) * torch.tensor([1.,1.,-1.]).view((3,1,1)).to(render_pkg["mean_depth"].device)
+        net_image = (net_image+1)/2
+    else:
+        net_image = render_pkg["render"]
+    if net_image.shape[0]==1:
+        net_image = colormap(net_image)
+    return net_image

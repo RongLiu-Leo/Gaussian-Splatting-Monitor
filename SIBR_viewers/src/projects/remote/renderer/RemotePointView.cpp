@@ -29,6 +29,30 @@ constexpr char* jRotScalePython = "rot_scale_python";
 constexpr char* jKeepAlive = "keep_alive";
 constexpr char* jRender = "render_mode";
 
+void sibr::RemotePointView::set_render_items(boost::asio::ip::tcp::socket& sock) {
+			uint32_t data_length;
+			boost::system::error_code ec;
+			// Read the length of the serialized data
+			boost::asio::read(sock, boost::asio::buffer(&data_length, sizeof(data_length)), ec);
+			if (ec) {
+				throw boost::system::system_error(ec); // Or handle error as appropriate
+			}
+			// Read the serialized data
+			std::vector<char> serialized_data(data_length);
+			boost::asio::read(sock, boost::asio::buffer(serialized_data), ec);
+			if (ec) {
+				throw boost::system::system_error(ec); // Or handle error as appropriate
+			}
+			// Deserialize the data to get the list of strings
+			json deserialized_data = json::parse(serialized_data.begin(), serialized_data.end());
+			std::vector<std::string> string_list = deserialized_data.get<std::vector<std::string>>();
+			// Now you can do operations with string_list
+			for (const auto& str : string_list) {
+				std::cout << str << std::endl; // Example operation
+			}
+			_renderItems = string_list;
+		}
+
 void sibr::RemotePointView::send_receive()
 {
 	while (keep_running)
@@ -49,6 +73,7 @@ void sibr::RemotePointView::send_receive()
 			} while (keep_running && ec.failed());
 
 			SIBR_LOG << "Connected!" << std::endl;
+			set_render_items(sock);
 			while (keep_running)
 			{
 				{
@@ -191,9 +216,11 @@ void sibr::RemotePointView::onGUI()
 	const std::string guiName = "Remote Viewer Settings (" + name() + ")";
 	if (ImGui::Begin(guiName.c_str())) 
 	{
-		const char* items[] = { "RGB", "Alpha", "Depth", "Normal" };
-        
-        ImGui::Combo("Render Mode", &_item_current, items, IM_ARRAYSIZE(items));
+		std::vector<const char*> items;
+		for (const auto& item : _renderItems) {
+			items.push_back(item.c_str());
+		}
+        ImGui::Combo("Render Mode", &_item_current, items.data(), static_cast<int>(items.size()));
 		ImGui::Checkbox("Show Input Points", &_showSfM);
 		ImGui::Checkbox("Show Input Points during Motion", &_renderSfMInMotion);
 		ImGui::Checkbox("Train", &_doTrainingBool);
