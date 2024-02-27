@@ -7,9 +7,9 @@ Inspired by these advancements, this codebase supports additional diffirentiable
 
 The updated codebase offers several improvements over the original Gaussian Splatting (GS) repository and is compatable with it:
 
-- Replacement of Colmap with Pycolmap for direct Python-based data conversion, eliminating the need for Colmap installation.
+- TODO: Replacement of Colmap with Pycolmap for direct Python-based data conversion, eliminating the need for Colmap installation.
 - Expanded support for differentiable rendering attributes (such as alpha, depth, normal, etc.), all of which are viewable in real-time SIBR Viewer and can be utilized as loss functions for backpropagation and optimization of the GS model.
-- Introduction of a new Python viewer script that builds on SIBRviewer, integrating Remote Viewer and Gaussian Viewer functionalities.
+- TODO: Introduction of a new Python viewer script that builds on SIBRviewer, integrating Remote Viewer and Gaussian Viewer functionalities.
 - Added capability for exporting Point Clouds and Meshes.
 
 

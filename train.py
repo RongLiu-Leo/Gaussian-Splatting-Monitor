@@ -48,7 +48,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     ema_loss_for_log = 0.0
     progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress")
     first_iter += 1
-    for iteration in range(first_iter, opt.iterations + 1):        
+    for iteration in range(first_iter, opt.iterations + 1):
         if network_gui.conn == None:
             network_gui.try_connect()
         while network_gui.conn != None:
@@ -61,13 +61,10 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                         net_image = render_pkg["alpha"]
                         net_image = (net_image - net_image.min()) / (net_image.max() - net_image.min())
                     elif render_mode == 2:
-                        net_image = render_pkg["mean_depth"]
+                        net_image = render_pkg["depth"]
                         net_image = (net_image - net_image.min()) / (net_image.max() - net_image.min())
                     elif render_mode == 3:
-                        net_image = render_pkg["median_depth"]
-                        net_image = (net_image - net_image.min()) / (net_image.max() - net_image.min())
-                    elif render_mode == 4:
-                        net_image = depth_to_normal(render_pkg["median_depth"], viewpoint_cam.world_view_transform[:3, :3].T)
+                        net_image = depth_to_normal(render_pkg["mean_depth"]) * torch.tensor([1.,1.,-1.]).view((3,1,1)).to(render_pkg["mean_depth"].device)
                         net_image = (net_image+1)/2
                     else:
                         net_image = render_pkg["render"]
@@ -78,6 +75,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 if do_training and ((iteration < int(opt.iterations)) or not keep_alive):
                     break
             except Exception as e:
+                # raise e
                 network_gui.conn = None
 
         iter_start.record()

@@ -19,13 +19,10 @@ def psnr(img1, img2):
     mse = (((img1 - img2)) ** 2).view(img1.shape[0], -1).mean(1, keepdim=True)
     return 20 * torch.log10(1.0 / torch.sqrt(mse))
 
-def depth_to_normal(depth_map, camera):
-    # depth_map = depth_map[None, ...]
-
+def depth_to_normal(depth_map):
     sobel_x = torch.tensor([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]).float().unsqueeze(0).unsqueeze(0).cuda()
     sobel_y = torch.tensor([[-1, -2, -1], [0, 0, 0], [1, 2, 1]]).float().unsqueeze(0).unsqueeze(0).cuda()
     
-
     grad_x = torch.nn.functional.conv2d(depth_map, sobel_x, padding=1)
     grad_y = torch.nn.functional.conv2d(depth_map, sobel_y, padding=1)
 

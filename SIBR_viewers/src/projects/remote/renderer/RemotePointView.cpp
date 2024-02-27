@@ -191,7 +191,7 @@ void sibr::RemotePointView::onGUI()
 	const std::string guiName = "Remote Viewer Settings (" + name() + ")";
 	if (ImGui::Begin(guiName.c_str())) 
 	{
-		const char* items[] = { "RGB", "Alpha", "Mean Depth", "Median Depth", "Normal" };
+		const char* items[] = { "RGB", "Alpha", "Depth", "Normal" };
         
         ImGui::Combo("Render Mode", &_item_current, items, IM_ARRAYSIZE(items));
 		ImGui::Checkbox("Show Input Points", &_showSfM);
