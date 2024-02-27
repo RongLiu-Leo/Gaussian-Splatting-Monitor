@@ -1,6 +1,6 @@
 # Gaussian Splatting Studio
 
-This repository builds upon the ["3D Gaussian Splatting for Real-Time Radiance Field Rendering" codebase](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/) by adding new features that enhance its utility for research purposes. Originally, Gaussian splatting excells in producing high-quality renderings but is constrained to only rendering RGB images and backprogating gradients based on RGB loss. This limitation hindered the potential for investigating the volumetric analysis of the Gaussian Splatting (GS) model and the development of novel loss functions. In contrast, models derived from Neural Radiance Fields (NeRF) leverage their fully connected MLP architectures to offer greater versatility in processing various input and output features, as well as in crafting loss functions. 
+This repository builds upon the ["3D Gaussian Splatting for Real-Time Radiance Field Rendering" project](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/) by adding new features that enhance its utility for research purposes. Originally, Gaussian splatting excells in producing high-quality renderings but is constrained to only rendering RGB images and backprogating gradients based on RGB loss. This limitation hindered the potential for investigating the volumetric analysis of the Gaussian Splatting (GS) model and the development of novel loss functions. In contrast, models derived from Neural Radiance Fields (NeRF) leverage their fully connected MLP architectures to offer greater versatility in processing various input and output features, as well as in crafting loss functions. 
 Inspired by these advancements, this codebase supports additional diffirentiable outputs, aiming to spur innovative research ideas. Additionally, we offer scripts for exporting Point Cloud and Mesh, bridging the latest research findings with traditional computer graphics engines.
 
 ## New Features
@@ -49,15 +49,20 @@ Please note that this process assumes that you have CUDA SDK **11** installed, n
 
 
 
-### Running
+### Scripts
+We only list the simple usage of scripts below. You can check the [original GS repository](https://github.com/graphdeco-inria/gaussian-splatting) for detailed command line arguments.
 
-To run the optimizer, simply use
-
+#### Train GS Model
 ```shell
 python train.py -s <path to COLMAP or NeRF Synthetic dataset>
 ```
 
+#### Export Point Cloud and Mesh
+```shell
+python export.py -s <path to COLMAP or NeRF Synthetic dataset> -m <path to trained model>
+```
 
+####
 
 ## Interactive Viewers
 We provide two interactive viewers for our method: remote and real-time. Our viewing solutions are based on the [SIBR](https://sibr.gitlabpages.inria.fr/) framework, developed by the GRAPHDECO group for several novel-view synthesis projects.
