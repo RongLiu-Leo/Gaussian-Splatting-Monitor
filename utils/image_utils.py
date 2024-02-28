@@ -11,6 +11,7 @@
 
 import torch
 import matplotlib.pyplot as plt
+import torch.nn.functional as F
 
 def mse(img1, img2):
     return (((img1 - img2)) ** 2).view(img1.shape[0], -1).mean(1, keepdim=True)
@@ -23,8 +24,8 @@ def depth_to_normal(depth_map):
     sobel_x = torch.tensor([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]).float().unsqueeze(0).unsqueeze(0).cuda()
     sobel_y = torch.tensor([[-1, -2, -1], [0, 0, 0], [1, 2, 1]]).float().unsqueeze(0).unsqueeze(0).cuda()
     
-    grad_x = torch.nn.functional.conv2d(depth_map, sobel_x, padding=1)
-    grad_y = torch.nn.functional.conv2d(depth_map, sobel_y, padding=1)
+    grad_x = F.conv2d(depth_map, sobel_x, padding=1)
+    grad_y = F.conv2d(depth_map, sobel_y, padding=1)
 
     dz = torch.ones_like(grad_x)
     normal_map = torch.cat((grad_x, grad_y, -dz), 0)
@@ -32,6 +33,23 @@ def depth_to_normal(depth_map):
     normal_map = normal_map / norm
 
     return normal_map
+
+def depth_to_curvature(depth_map):
+    laplacian_kernel = torch.tensor([[0, 1, 0], [1, -4, 1], [0, 1, 0]]).float().unsqueeze(0).unsqueeze(0).cuda()
+    
+    curvature = F.conv2d(depth_map, laplacian_kernel, padding=1)
+    
+    return curvature
+
+def rgb_to_edge(rgb):
+    sobel_x = torch.tensor([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]).float().unsqueeze(0).unsqueeze(0).cuda()
+    sobel_y = torch.tensor([[-1, -2, -1], [0, 0, 0], [1, 2, 1]]).float().unsqueeze(0).unsqueeze(0).cuda()
+    
+    grad_x = torch.cat([F.conv2d(rgb[i].unsqueeze(0), sobel_x, padding=1) for i in range(rgb.shape[0])])
+    grad_y = torch.cat([F.conv2d(rgb[i].unsqueeze(0), sobel_y, padding=1) for i in range(rgb.shape[0])])
+    edge = torch.sqrt(grad_x ** 2 + grad_y ** 2)
+
+    return edge
 
 def unproject_depth_map(camera, depth_map):
     height, width = depth_map.shape
@@ -79,10 +97,7 @@ def colormap(map, cmap="magma"):
     return (1 - map) * start_color + map * end_color
 
 def render_net_image(render_pkg, render_items, render_mode):
-    render_support = ['rgb', 'depth', 'alpha', 'normal']
-    output = render_items[render_mode]
-    if output not in render_support:
-        raise NotImplementedError(f'Render {output} not implemented yet.')
+    output = render_items[render_mode].lower()
     if output == 'alpha':
         net_image = render_pkg["alpha"]
         net_image = (net_image - net_image.min()) / (net_image.max() - net_image.min())
@@ -92,7 +107,11 @@ def render_net_image(render_pkg, render_items, render_mode):
     elif output == 'normal':
         net_image = depth_to_normal(render_pkg["mean_depth"]) * torch.tensor([1.,1.,-1.]).view((3,1,1)).to(render_pkg["mean_depth"].device)
         net_image = (net_image+1)/2
-    else:
+    elif output == 'edge':
+        net_image = rgb_to_edge(render_pkg["render"])
+    elif output == 'curvature':
+        net_image = depth_to_curvature(render_pkg["mean_depth"])
+    else: # rgb
         net_image = render_pkg["render"]
     if net_image.shape[0]==1:
         net_image = colormap(net_image)
