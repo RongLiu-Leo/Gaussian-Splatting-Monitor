@@ -50,7 +50,8 @@ def try_connect(render_items):
         conn.settimeout(None)
         send_render_items(conn, render_items)
     except Exception as inst:
-        raise inst
+        pass
+        # raise inst
             
 def read():
     global conn
