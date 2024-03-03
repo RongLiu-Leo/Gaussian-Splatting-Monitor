@@ -65,7 +65,7 @@ python export.py -s <path to COLMAP or NeRF Synthetic dataset> -m <path to train
 #### Real-time Viewer
 Firstly open the Real-time viewer, and then do
 ```shell
-python python train.py -s <path to COLMAP or NeRF Synthetic dataset> # Monitor the training process
+python train.py -s <path to COLMAP or NeRF Synthetic dataset> # Monitor the training process
 python viewer.py -s <path to COLMAP or NeRF Synthetic dataset> -m <path to trained model> # View the trained model
 ```
 ####
