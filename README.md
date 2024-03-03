@@ -62,10 +62,11 @@ python metrics.py -m <path to trained model> # Compute error metrics on renderin
 ```shell
 python export.py -s <path to COLMAP or NeRF Synthetic dataset> -m <path to trained model>
 ```
-#### TODO: Real-time Viewer
+#### Real-time Viewer
+Firstly open the Real-time viewer, and then do
 ```shell
-python viewer.py # Monitor the training process
-python viewer.py -m <path to trained model> # View the trained model
+python python train.py -s <path to COLMAP or NeRF Synthetic dataset> # Monitor the training process
+python viewer.py -s <path to COLMAP or NeRF Synthetic dataset> -m <path to trained model> # View the trained model
 ```
 ####
 
