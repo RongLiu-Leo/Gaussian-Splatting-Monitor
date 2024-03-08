@@ -14,22 +14,23 @@ def view(dataset, pipe, iteration, render_items):
     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
     background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
 
-    if network_gui.conn == None:
-        network_gui.try_connect(render_items)
-        while network_gui.conn != None:
-            try:
-                net_image_bytes = None
-                custom_cam, do_training, pipe.convert_SHs_python, pipe.compute_cov3D_python, keep_alive, scaling_modifer, render_mode = network_gui.receive()
-                if custom_cam != None:
-                    render_pkg = render(custom_cam, gaussians, pipe, background, scaling_modifer)
-                    net_image = render_net_image(render_pkg, render_items, render_mode, custom_cam)
-                    net_image_bytes = memoryview((torch.clamp(net_image, min=0, max=1.0) * 255).byte().permute(1, 2, 0).contiguous().cpu().numpy())
-                network_gui.send(net_image_bytes, dataset.source_path)
-                if not keep_alive:
-                    break
-            except Exception as e:
-                # raise e
-                network_gui.conn = None
+    with torch.no_grad():
+        if network_gui.conn == None:
+            network_gui.try_connect(render_items)
+            while network_gui.conn != None:
+                try:
+                    net_image_bytes = None
+                    custom_cam, do_training, pipe.convert_SHs_python, pipe.compute_cov3D_python, keep_alive, scaling_modifer, render_mode = network_gui.receive()
+                    if custom_cam != None:
+                        render_pkg = render(custom_cam, gaussians, pipe, background, scaling_modifer)
+                        net_image = render_net_image(render_pkg, render_items, render_mode, custom_cam)
+                        net_image_bytes = memoryview((torch.clamp(net_image, min=0, max=1.0) * 255).byte().permute(1, 2, 0).contiguous().cpu().numpy())
+                    network_gui.send(net_image_bytes, dataset.source_path)
+                    if not keep_alive:
+                        break
+                except Exception as e:
+                    # raise e
+                    network_gui.conn = None
  
 
 if __name__ == "__main__":

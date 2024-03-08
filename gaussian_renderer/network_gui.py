@@ -94,7 +94,7 @@ def receive():
         except Exception as e:
             print("")
             traceback.print_exc()
-            raise e
+            # raise e
         return custom_cam, do_training, do_shs_python, do_rot_scale_python, keep_alive, scaling_modifier, render_mode
     else:
         return None, None, None, None, None, None, None
