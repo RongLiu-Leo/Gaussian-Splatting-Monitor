@@ -1,7 +1,12 @@
-# Gaussian Splatting Studio
+<h1 align="center"> Gaussian Splatting Studio</h1>
+
+
+<p align="center">
+<img src="./assets/teaser.gif" />
+</p>
 
 This repository builds upon the ["3D Gaussian Splatting for Real-Time Radiance Field Rendering" project](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/) by adding new features that enhance its utility for research purposes. Originally, Gaussian splatting excells in producing high-quality renderings but is constrained to only rendering RGB images and backprogating gradients based on RGB loss. This limitation hindered the potential for investigating the volumetric analysis of the Gaussian Splatting (GS) model and the development of novel loss functions. In contrast, models derived from Neural Radiance Fields (NeRF) leverage their fully connected MLP architectures to offer greater versatility in processing various input and output features, as well as in crafting loss functions. 
-Inspired by these advancements, this codebase supports additional diffirentiable outputs, aiming to spur innovative research ideas. Additionally, we offer scripts for exporting Point Cloud and Mesh, bridging the latest research findings with traditional computer graphics engines.
+Inspired by these advancements, this codebase supports additional diffirentiable outputs, aiming to spur innovative research ideas.
 
 ## New Features
 
@@ -10,7 +15,6 @@ The updated codebase offers several improvements over the original Gaussian Spla
 - TODO: Replacement of Colmap with Pycolmap for direct Python-based data conversion, eliminating the need for Colmap installation.
 - Expanded support for differentiable rendering attributes, all of which are viewable in real-time SIBR Viewer and can be utilized as loss functions for backpropagation and optimization of the GS model. Supported attributes: RGB, Alpha, Depth, Normal, Edge, Curvature.
 - TODO: Introduction of a new Python viewer script that builds on SIBRviewer, integrating Remote Viewer and Gaussian Viewer functionalities.
-- Added capability for exporting Point Clouds and Meshes.
 
 
 ## Acknowledgments
@@ -58,10 +62,7 @@ python metrics.py -m <path to trained model> # Compute error metrics on renderin
 ```
 
 
-#### Export Point Cloud and Mesh
-```shell
-python export.py -s <path to COLMAP or NeRF Synthetic dataset> -m <path to trained model>
-```
+
 #### Real-time Viewer
 Firstly open the Real-time viewer, and then do
 ```shell
