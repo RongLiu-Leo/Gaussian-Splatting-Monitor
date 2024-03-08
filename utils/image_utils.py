@@ -104,11 +104,12 @@ def unproject_depth_map(depth_map, camera):
     # print(torch.isnan(points_world).sum())
     return points_world
 
-def colormap(map, cmap="magma"):
-    colors = plt.cm.get_cmap(cmap).colors
-    start_color = torch.tensor(colors[0]).view(3, 1, 1).to(map.device)
-    end_color = torch.tensor(colors[-1]).view(3, 1, 1).to(map.device)
-    return (1 - map) * start_color + map * end_color
+def colormap(map, cmap="turbo"):
+    colors = torch.tensor(plt.cm.get_cmap(cmap).colors).to(map.device)
+    map = (map - map.min()) / (map.max() - map.min())
+    map = (map * 255).round().long().squeeze()
+    map = colors[map].permute(2,0,1)
+    return map
 
 def render_net_image(render_pkg, render_items, render_mode, camera):
     output = render_items[render_mode].lower()
