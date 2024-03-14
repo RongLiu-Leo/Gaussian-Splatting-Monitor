@@ -70,7 +70,7 @@ def render(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor, 
     shs = None
     colors_precomp = None
     if override_color is None:
-        if pipe.convert_SHs_python:
+        if True:  # for test, make sure that colors are computed in python
             shs_view = pc.get_features.transpose(1, 2).view(-1, 3, (pc.max_sh_degree+1)**2)
             dir_pp = (pc.get_xyz - viewpoint_camera.camera_center.repeat(pc.get_features.shape[0], 1))
             dir_pp_normalized = dir_pp/dir_pp.norm(dim=1, keepdim=True)
@@ -80,6 +80,10 @@ def render(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor, 
             shs = pc.get_features
     else:
         colors_precomp = override_color
+
+    # TODO: shuyang/render_features Test 5 dims, delete after merge
+    # colors_precomp = torch.cat((colors_precomp, colors_precomp), dim=1)
+    # colors_precomp = colors_precomp[:, :5]
 
     # Rasterize visible Gaussians to image, obtain their radii (on screen). 
     rendered_image, rendered_depth, rendered_median_depth, rendered_alpha, radii = rasterizer(

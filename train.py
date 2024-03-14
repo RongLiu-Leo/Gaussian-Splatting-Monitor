@@ -38,6 +38,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         (model_params, first_iter) = torch.load(checkpoint)
         gaussians.restore(model_params, opt)
 
+    # TODO: shuyang/render_features Test 5 dims, delete after merge
+    # bg_color = [1, 1, 1, 0, 1]
+
     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
     background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
 
@@ -90,6 +93,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
         # Loss
         gt_image = viewpoint_cam.original_image.cuda()
+
+        # TODO: shuyang/render_features Test 5 dims, delete after merge
+        # gt_image = torch.cat((gt_image, gt_image), dim=0)
+        # gt_image = gt_image[:5, :, :]
+
         Ll1 = l1_loss(image, gt_image)
         loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(image, gt_image))
         loss.backward()

@@ -103,6 +103,11 @@ def colormap(map, cmap="turbo"):
 
 def render_net_image(render_pkg, render_items, render_mode, camera):
     output = render_items[render_mode].lower()
+
+    # TODO: shuyang/render_features Test 5 dims, delete after merge
+    # render_img = render_pkg["render"]
+    # render_img = render_img[2:, :, :]
+
     if output == 'alpha':
         net_image = render_pkg["alpha"]
         net_image = (net_image - net_image.min()) / (net_image.max() - net_image.min())
@@ -113,10 +118,14 @@ def render_net_image(render_pkg, render_items, render_mode, camera):
         net_image = depth_to_normal(render_pkg["mean_depth"], camera).permute(2,0,1)
         net_image = (net_image+1)/2
     elif output == 'edge':
+        # TODO: shuyang/render_features Test 5 dims, delete after merge
+        # net_image = gradient_map(render_img)
         net_image = gradient_map(render_pkg["render"])
     elif output == 'curvature':
         net_image = gradient_map(depth_to_normal(render_pkg["mean_depth"], camera).permute(2,0,1))
     else:
+        # TODO: shuyang/render_features Test 5 dims, delete after merge
+        # net_image = render_img
         net_image = render_pkg["render"]
     if net_image.shape[0]==1:
         net_image = colormap(net_image)

@@ -32,7 +32,7 @@ namespace CudaRasterizer
 			std::function<char* (size_t)> geometryBuffer,
 			std::function<char* (size_t)> binningBuffer,
 			std::function<char* (size_t)> imageBuffer,
-			const int P, int D, int M,
+			const int P, const int RF, int D, int M,
 			const float* background,
 			const int width, int height,
 			const float* means3D,
@@ -56,7 +56,7 @@ namespace CudaRasterizer
 			bool debug = false);
 
 		static void backward(
-			const int P, int D, int M, int R,
+			const int P, const int RF, int D, int M, int R,
 			const float* background,
 			const int width, int height,
 			const float* means3D,

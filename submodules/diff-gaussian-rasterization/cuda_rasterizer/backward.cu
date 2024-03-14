@@ -418,6 +418,7 @@ renderCUDA(
 	const uint2* __restrict__ ranges,
 	const uint32_t* __restrict__ point_list,
 	int W, int H,
+    int RF,
 	const float* __restrict__ bg_color,
 	const float2* __restrict__ points_xy_image,
 	const float4* __restrict__ conic_opacity,
@@ -443,7 +444,11 @@ renderCUDA(
 	const uint32_t pix_id = W * pix.y + pix.x;
 	const float2 pixf = { (float)pix.x, (float)pix.y };
 
-	const bool inside = pix.x < W&& pix.y < H;
+    // Identify current channel block
+    uint32_t ch_id = block.group_index().z;
+    int needChannels = min(C, RF - NUM_CHANNELS_PER_RENDER * ch_id);
+
+    const bool inside = pix.x < W&& pix.y < H;
 	const uint2 range = ranges[block.group_index().y * horizontal_blocks + block.group_index().x];
 
 	const int rounds = ((range.y - range.x + BLOCK_SIZE - 1) / BLOCK_SIZE);
@@ -475,7 +480,7 @@ renderCUDA(
 	float dL_dpixel_alpha;
 	if (inside) 
 	{
-		for (int i = 0; i < C; i++)
+		for (int i = 0; i < needChannels; i++)
 			dL_dpixel[i] = dL_dpixels[i * H * W + pix_id];
 		dL_dpixel_depth = dL_dpixel_depths[pix_id];
 		dL_dpixel_alpha = dL_dpixel_alphas[pix_id];
@@ -501,8 +506,9 @@ renderCUDA(
 			collected_id[block.thread_rank()] = coll_id;
 			collected_xy[block.thread_rank()] = points_xy_image[coll_id];
 			collected_conic_opacity[block.thread_rank()] = conic_opacity[coll_id];
-			for (int i = 0; i < C; i++)
-				collected_colors[i * BLOCK_SIZE + block.thread_rank()] = colors[coll_id * C + i];
+			for (int i = 0; i < needChannels; i++)
+				collected_colors[i * BLOCK_SIZE + block.thread_rank()] =
+                        colors[coll_id * RF + NUM_CHANNELS_PER_RENDER * ch_id + i];
 			collected_depths[block.thread_rank()] = depths[coll_id];
 		}
 		block.sync();
@@ -538,7 +544,7 @@ renderCUDA(
 			// pair).
 			float dL_dalpha = 0.0f;
 			const int global_id = collected_id[j];
-			for (int ch = 0; ch < C; ch++)
+			for (int ch = 0; ch < needChannels; ch++)
 			{
 				const float c = collected_colors[ch * BLOCK_SIZE + j];
 				// Update last color (to be used in the next iteration)
@@ -550,7 +556,8 @@ renderCUDA(
 				// Update the gradients w.r.t. color of the Gaussian. 
 				// Atomic, since this pixel is just one of potentially
 				// many that were affected by this Gaussian.
-				atomicAdd(&(dL_dcolors[global_id * C + ch]), dchannel_dcolor * dL_dchannel);
+				atomicAdd(&(dL_dcolors[global_id * RF + NUM_CHANNELS_PER_RENDER * ch_id + ch]),
+                          dchannel_dcolor * dL_dchannel);
 			}
 			const float dep = collected_depths[j];
 			accum_red = last_alpha * last_depth + (1.f - last_alpha) * accum_red;
@@ -569,8 +576,8 @@ renderCUDA(
 			// Account for fact that alpha also influences how much of
 			// the background color is added if nothing left to blend
 			float bg_dot_dpixel = 0;
-			for (int i = 0; i < C; i++)
-				bg_dot_dpixel += bg_color[i] * dL_dpixel[i];
+			for (int i = 0; i < needChannels; i++)
+				bg_dot_dpixel += bg_color[NUM_CHANNELS_PER_RENDER * ch_id + i] * dL_dpixel[i];
 			dL_dalpha += (-T_final / (1.f - alpha)) * bg_dot_dpixel;
 
 			// Set background depth value == 0, thus no contribution for
@@ -644,7 +651,7 @@ void BACKWARD::preprocess(
 	// Propagate gradients for remaining steps: finish 3D mean gradients,
 	// propagate color gradients to SH (if desireD), propagate 3D covariance
 	// matrix gradients to scale and rotation.
-	preprocessCUDA<NUM_CHANNELS> << < (P + 255) / 256, 256 >> > (
+	preprocessCUDA<NUM_CHANNELS_PER_RENDER> << < (P + 255) / 256, 256 >> > (
 		P, D, M,
 		(float3*)means3D,
 		radii,
@@ -671,6 +678,7 @@ void BACKWARD::render(
 	const uint2* ranges,
 	const uint32_t* point_list,
 	int W, int H,
+    int RF,
 	const float* bg_color,
 	const float2* means2D,
 	const float4* conic_opacity,
@@ -687,10 +695,11 @@ void BACKWARD::render(
 	float* dL_dcolors,
 	float* dL_ddepths)
 {
-	renderCUDA<NUM_CHANNELS> << <grid, block >> >(
+	renderCUDA<NUM_CHANNELS_PER_RENDER> << <grid, block >> >(
 		ranges,
 		point_list,
 		W, H,
+        RF,
 		bg_color,
 		means2D,
 		conic_opacity,

@@ -198,7 +198,7 @@ int CudaRasterizer::Rasterizer::forward(
 	std::function<char* (size_t)> geometryBuffer,
 	std::function<char* (size_t)> binningBuffer,
 	std::function<char* (size_t)> imageBuffer,
-	const int P, int D, int M,
+	const int P, const int RF, int D, int M,
 	const float* background,
 	const int width, int height,
 	const float* means3D,
@@ -233,7 +233,8 @@ int CudaRasterizer::Rasterizer::forward(
 		radii = geomState.internal_radii;
 	}
 
-	dim3 tile_grid((width + BLOCK_X - 1) / BLOCK_X, (height + BLOCK_Y - 1) / BLOCK_Y, 1);
+	dim3 tile_grid((width + BLOCK_X - 1) / BLOCK_X, (height + BLOCK_Y - 1) / BLOCK_Y,
+                   (RF + NUM_CHANNELS_PER_RENDER - 1) / NUM_CHANNELS_PER_RENDER);
 	dim3 block(BLOCK_X, BLOCK_Y, 1);
 
 	// Dynamically resize image-based auxiliary buffers during training
@@ -241,9 +242,9 @@ int CudaRasterizer::Rasterizer::forward(
 	char* img_chunkptr = imageBuffer(img_chunk_size);
 	ImageState imgState = ImageState::fromChunk(img_chunkptr, width * height);
 
-	if (NUM_CHANNELS != 3 && colors_precomp == nullptr)
+	if (colors_precomp == nullptr)
 	{
-		throw std::runtime_error("For non-RGB, provide precomputed Gaussian colors!");
+		throw std::runtime_error("Must provide precomputed render features!");
 	}
 
 	// Run preprocessing per-Gaussian (transformation, bounding, conversion of SHs to RGB)
@@ -320,12 +321,17 @@ int CudaRasterizer::Rasterizer::forward(
 	CHECK_CUDA(, debug)
 
 	// Let each tile blend its range of Gaussians independently in parallel
-	const float* feature_ptr = colors_precomp != nullptr ? colors_precomp : geomState.rgb;
+    if (colors_precomp == nullptr)
+    {
+        throw std::runtime_error("Must provide precomputed render features!");
+    }
+	const float* feature_ptr = colors_precomp;
 	CHECK_CUDA(FORWARD::render(
 		tile_grid, block,
 		imgState.ranges,
 		binningState.point_list,
 		width, height,
+        RF,
 		geomState.means2D,
 		feature_ptr,
 		geomState.depths,
@@ -343,7 +349,7 @@ int CudaRasterizer::Rasterizer::forward(
 // Produce necessary gradients for optimization, corresponding
 // to forward render pass
 void CudaRasterizer::Rasterizer::backward(
-	const int P, int D, int M, int R,
+	const int P, const int RF, int D, int M, int R,
 	const float* background,
 	const int width, int height,
 	const float* means3D,
@@ -389,19 +395,26 @@ void CudaRasterizer::Rasterizer::backward(
 	const float focal_y = height / (2.0f * tan_fovy);
 	const float focal_x = width / (2.0f * tan_fovx);
 
-	const dim3 tile_grid((width + BLOCK_X - 1) / BLOCK_X, (height + BLOCK_Y - 1) / BLOCK_Y, 1);
+	const dim3 tile_grid((width + BLOCK_X - 1) / BLOCK_X, (height + BLOCK_Y - 1) / BLOCK_Y,
+                         (RF + NUM_CHANNELS_PER_RENDER - 1) / NUM_CHANNELS_PER_RENDER);
 	const dim3 block(BLOCK_X, BLOCK_Y, 1);
+
+    if (colors_precomp == nullptr)
+    {
+        throw std::runtime_error("Must provide precomputed render features!");
+    }
 
 	// Compute loss gradients w.r.t. 2D mean position, conic matrix,
 	// opacity and RGB of Gaussians from per-pixel loss gradients.
 	// If we were given precomputed colors and not SHs, use them.
-	const float* color_ptr = (colors_precomp != nullptr) ? colors_precomp : geomState.rgb;
+	const float* color_ptr = colors_precomp;
 	CHECK_CUDA(BACKWARD::render(
 		tile_grid,
 		block,
 		imgState.ranges,
 		binningState.point_list,
 		width, height,
+        RF,
 		background,
 		geomState.means2D,
 		geomState.conic_opacity,

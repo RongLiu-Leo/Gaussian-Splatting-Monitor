@@ -236,16 +236,6 @@ __global__ void preprocessCUDA(int P, int D, int M,
 	if ((rect_max.x - rect_min.x) * (rect_max.y - rect_min.y) == 0)
 		return;
 
-	// If colors have been precomputed, use them, otherwise convert
-	// spherical harmonics coefficients to RGB color.
-	if (colors_precomp == nullptr)
-	{
-		glm::vec3 result = computeColorFromSH(idx, D, M, (glm::vec3*)orig_points, *cam_pos, shs, clamped);
-		rgb[idx * C + 0] = result.x;
-		rgb[idx * C + 1] = result.y;
-		rgb[idx * C + 2] = result.z;
-	}
-
 	// Store some useful helper data for the next steps.
 	depths[idx] = p_view.z;
 	radii[idx] = my_radius;
@@ -256,7 +246,7 @@ __global__ void preprocessCUDA(int P, int D, int M,
 }
 
 // Main rasterization method. Collaboratively works on one tile per
-// block, each thread treats one pixel. Alternates between fetching 
+// block, each thread treats one pixel. Alternates between fetching
 // and rasterizing data.
 template <uint32_t CHANNELS>
 __global__ void __launch_bounds__(BLOCK_X * BLOCK_Y)
@@ -264,6 +254,7 @@ renderCUDA(
 	const uint2* __restrict__ ranges,
 	const uint32_t* __restrict__ point_list,
 	int W, int H,
+    int RF,
 	const float2* __restrict__ points_xy_image,
 	const float* __restrict__ features,
 	const float* __restrict__ depths,
@@ -283,6 +274,10 @@ renderCUDA(
 	uint2 pix = { pix_min.x + block.thread_index().x, pix_min.y + block.thread_index().y };
 	uint32_t pix_id = W * pix.y + pix.x;
 	float2 pixf = { (float)pix.x, (float)pix.y };
+
+    // Identify current channel block
+    uint32_t ch_id = block.group_index().z;
+    int needChannels = min(CHANNELS, RF - NUM_CHANNELS_PER_RENDER * ch_id);
 
 	// Check if this thread is associated with a valid pixel or outside.
 	bool inside = pix.x < W&& pix.y < H;
@@ -356,8 +351,8 @@ renderCUDA(
 			}
 
 			// Eq. (3) from 3D Gaussian splatting paper.
-			for (int ch = 0; ch < CHANNELS; ch++)
-				C[ch] += features[collected_id[j] * CHANNELS + ch] * alpha * T;
+			for (int ch = 0; ch < needChannels; ch++)
+				C[ch] += features[collected_id[j] * RF + NUM_CHANNELS_PER_RENDER * ch_id + ch] * alpha * T;
 			D += depths[collected_id[j]] * alpha * T;
 			if (T > 0.5f && test_T < 0.5)
 			{
@@ -377,8 +372,9 @@ renderCUDA(
 	{
 		out_alpha[pix_id] = 1 - T;
 		n_contrib[pix_id] = last_contributor;
-		for (int ch = 0; ch < CHANNELS; ch++)
-			out_color[ch * H * W + pix_id] = C[ch] + T * bg_color[ch];
+		for (int ch = 0; ch < needChannels; ch++)
+			out_color[(NUM_CHANNELS_PER_RENDER * ch_id + ch) * H * W + pix_id] = C[ch] + T *
+                    bg_color[NUM_CHANNELS_PER_RENDER * ch_id + ch];
 		out_depth[pix_id] = D;
 		out_median_depth[pix_id] = median_D;
 	}
@@ -389,6 +385,7 @@ void FORWARD::render(
 	const uint2* ranges,
 	const uint32_t* point_list,
 	int W, int H,
+    int RF,
 	const float2* means2D,
 	const float* colors,
 	const float* depths,
@@ -400,10 +397,11 @@ void FORWARD::render(
 	float* out_depth,
 	float* out_median_depth)
 {
-	renderCUDA<NUM_CHANNELS> << <grid, block >> > (
+	renderCUDA<NUM_CHANNELS_PER_RENDER> << <grid, block >> > (
 		ranges,
 		point_list,
 		W, H,
+        RF,
 		means2D,
 		colors,
 		depths,
@@ -442,7 +440,7 @@ void FORWARD::preprocess(int P, int D, int M,
 	uint32_t* tiles_touched,
 	bool prefiltered)
 {
-	preprocessCUDA<NUM_CHANNELS> << <(P + 255) / 256, 256 >> > (
+	preprocessCUDA<NUM_CHANNELS_PER_RENDER> << <(P + 255) / 256, 256 >> > (
 		P, D, M,
 		means3D,
 		scales,
