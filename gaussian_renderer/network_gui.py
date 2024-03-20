@@ -32,6 +32,7 @@ def init(wish_host, wish_port):
     listener.listen()
     listener.settimeout(0)
 
+
 def send_render_items(conn, string_list):
     # Serialize the list of strings to JSON
     serialized_data = json.dumps(string_list)
