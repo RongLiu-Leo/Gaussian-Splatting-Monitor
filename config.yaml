@@ -1,0 +1,53 @@
+repr:
+  max_sh_degree: 3
+data:
+  source_path: ""
+  model_path: ""
+  images: "images"
+  resolution: -1
+  white_background: False
+  data_device: "cuda"
+  eval: False
+  convert_SHs_python: False
+  compute_cov3D_python: False
+  debug: False
+paramOptim:
+  position_lr_init: 0.00016
+  position_lr_final: 0.0000016
+  position_lr_delay_mult: 0.01
+  position_lr_max_steps: 30000
+  feature_lr: 0.0025
+  opacity_lr: 0.05
+  scaling_lr: 0.005
+  rotation_lr: 0.001
+structOptim:
+  percent_dense: 0.01
+  densification_interval: 100
+  opacity_reset_interval: 3000
+  densify_from_iter: 500
+  densify_until_iter: 15000
+  densify_grad_threshold: 0.0002
+loss:
+  lambda_dssim: 0.2
+renderer:
+  background_color: [0,0,0]
+  compute_cov3D_python: False
+  convert_SHs_python: False
+  scaling_modifier: 1.0
+  prefiltered: False
+  override_color: [-1,-1,-1]
+  debug: False
+gui:
+  use: False
+  ip: "127.0.0.1"
+  port: 6009
+train:
+  iterations: 30000
+  random_background: False
+  debug_from: -1
+  detect_anomaly: False
+  test_iterations: [7000, 30000]
+  save_iterations: [7000, 30000]
+  quiet: False
+  checkpoint_iterations: []
+  start_checkpoint: null

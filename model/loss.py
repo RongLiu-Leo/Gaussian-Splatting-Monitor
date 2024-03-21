@@ -2,6 +2,17 @@ import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
 from math import exp
+import torch.nn as nn
+from model.base import BaseModule
+class L1WithSSIMLoss(nn.Module, BaseModule):
+    def __init__(self,cfg, logger):
+        nn.Module.__init__(self)  
+        BaseModule.__init__(self, cfg, logger)
+
+    def forward(self,predict,gt):
+        value = (1.0 - self.cfg.lambda_dssim) * l1_loss(predict,gt) + self.cfg.lambda_dssim * (1.0 - ssim(predict,gt))
+        self.value = value
+        return value
 
 def l1_loss(pred, gt):
     return torch.abs((pred - gt)).mean()

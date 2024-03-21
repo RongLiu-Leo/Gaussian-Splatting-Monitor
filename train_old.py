@@ -1,10 +1,35 @@
-from model import GaussianRepr, l1_loss, 
+#
+# Copyright (C) 2023, Inria
+# GRAPHDECO research group, https://team.inria.fr/graphdeco
+# All rights reserved.
+#
+# This software is free for non-commercial, research and evaluation use 
+# under the terms of the LICENSE.md file.
+#
+# For inquiries contact  george.drettakis@inria.fr
+#
 
-def main():
-    logger = 0
-    cfg = {"set":1}
+import os
+import torch
+from random import randint
+from model.loss import l1_loss, ssim
+from gaussian_renderer import render, network_gui
+import sys
+from scene import Scene, GaussianModel
+from utils.general_utils import safe_state
+from tqdm import tqdm
+from utils.image_utils import psnr, render_net_image
+from argparse import ArgumentParser, Namespace
+from arguments import ModelParams, PipelineParams, OptimizationParams
+try:
+    from torch.utils.tensorboard import SummaryWriter
+    TENSORBOARD_FOUND = True
+except ImportError:
+    TENSORBOARD_FOUND = False
 
+def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from, render_items):
     first_iter = 0
+    tb_writer = prepare_output_and_logger(dataset)
     gaussians = GaussianModel(dataset.sh_degree)
     scene = Scene(dataset, gaussians)
     gaussians.training_setup(opt)
@@ -80,9 +105,12 @@ def main():
                 progress_bar.close()
 
             # Log and save
+            training_report(tb_writer, iteration, Ll1, loss, l1_loss, iter_start.elapsed_time(iter_end), testing_iterations, scene, render, (pipe, background))
             if (iteration in saving_iterations):
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration)
+            feat_dc = scene.gaussians._features_dc.detach().transpose(1, 2).flatten(start_dim=1).contiguous().cpu().numpy()
+            feat_rest = scene.gaussians._features_rest.detach().transpose(1, 2).flatten(start_dim=1).contiguous().cpu().numpy()
             # Densification
             if iteration < opt.densify_until_iter:
                 # Keep track of max radii in image-space for pruning
