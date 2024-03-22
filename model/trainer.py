@@ -17,12 +17,8 @@ class BaseTrainer(BaseModule):
         self.result_path = Path(result_path)
         self.ckpt_path = Path(ckpt_path)
 
-
         self.progress_bar = ProgressBar(self.iterations + 1)
 
-                
-        
-    
     def init_save_results(self):
         # Save point cloud data
         input_ply_path = self.result_path / "input.ply"

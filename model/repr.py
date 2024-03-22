@@ -105,8 +105,6 @@ class GaussianRepr(BaseModule):
             print(f"tensor in size {list(param[3])}, device='{param.device}', requires_grad={param.requires_grad}")
             print("-----------------------------------")
     
-
-    
     def update_params(self,param_dict):
         if "xyz" in param_dict:
             self._xyz = param_dict.get("xyz")

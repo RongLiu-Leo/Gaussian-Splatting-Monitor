@@ -22,11 +22,12 @@ def init_settings(seed):
     torch.backends.cudnn.benchmark = False
 
 def main(config_path):    
+
     # init config
     with open(config_path, 'r') as file:
         cfg = yaml.safe_load(file)
     name = cfg.get('name')
-    exp_folder = name + '@' + time.strftime("%Y%m%d%H%M%S")
+    exp_folder = name + '@' + time.strftime("%Y%m%d-%H%M%S")
     exp_path = Path(cfg.get('exp_path')) / exp_folder
     exp_path.mkdir(parents=True, exist_ok=True)
     seed = cfg.get('seed')
@@ -72,6 +73,7 @@ def main(config_path):
                           result_path = result_path,
                           ckpt_path = ckpt_path)
     trainer.init_save_results()
+    
     # train!
     trainer.train()
     
