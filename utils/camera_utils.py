@@ -1,22 +1,9 @@
-#
-# Copyright (C) 2023, Inria
-# GRAPHDECO research group, https://team.inria.fr/graphdeco
-# All rights reserved.
-#
-# This software is free for non-commercial, research and evaluation use 
-# under the terms of the LICENSE.md file.
-#
-# For inquiries contact  george.drettakis@inria.fr
-#
-import torch
-import torch.nn as nn
-import numpy as np
-from PIL import Image
-
 import torch
 from torch import nn
+import numpy as np
+from PIL import Image
 import torchvision.transforms as transforms
-from utils.graphics_utils import fov2focal, getWorld2View, getProjectionMatrix
+from utils import fov2focal, getWorld2View, getProjectionMatrix
 
 class BasicCamera(nn.Module):
     def __init__(self, R, T, fov_x, fov_y, height, width, 

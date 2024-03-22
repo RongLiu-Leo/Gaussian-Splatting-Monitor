@@ -1,5 +1,6 @@
 name: "lego"
 exp_path: "./output/"
+seed: 0
 repr: 
   max_sh_degree: 3
 data:

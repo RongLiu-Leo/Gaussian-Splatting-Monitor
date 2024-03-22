@@ -11,8 +11,15 @@ import yaml
 import argparse
 from pathlib import Path
 from utils import *
+import random
 
-
+def init_settings(seed):
+    random.seed(0)
+    np.random.seed(0)
+    torch.manual_seed(0)
+    torch.cuda.set_device(torch.device("cuda:0"))
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 def main(config_path):    
     # init config
@@ -22,6 +29,8 @@ def main(config_path):
     exp_folder = name + '@' + time.strftime("%Y%m%d%H%M%S")
     exp_path = Path(cfg.get('exp_path')) / exp_folder
     exp_path.mkdir(parents=True, exist_ok=True)
+    seed = cfg.get('seed')
+    init_settings(seed)
 
     # init logger
     info_path = exp_path / "info"
