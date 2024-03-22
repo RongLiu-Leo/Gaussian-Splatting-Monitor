@@ -8,7 +8,7 @@ class ColmapData(BaseModule):
         self.point_cloud, pair_list, self.ply_path = load_colmap_folder(self.source_path)
 
         # Define train and test dataset
-        if self.eval >= 0:
+        if self.eval > 0:
             self._train_pair_list = [c for idx, c in enumerate(pair_list) if idx % self.eval != 0]
             self._test_pair_list = [c for idx, c in enumerate(pair_list) if idx % self.eval == 0]
         else:

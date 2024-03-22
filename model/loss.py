@@ -11,7 +11,7 @@ class L1WithSSIMLoss(nn.Module, BaseModule):
         BaseModule.__init__(self, cfg, logger)
 
     def forward(self,predict,gt):
-        value = (1.0 - self.cfg.lambda_dssim) * l1_loss(predict,gt) + self.cfg.lambda_dssim * (1.0 - ssim(predict,gt))
+        value = (1.0 - self.lambda_dssim) * l1_loss(predict,gt) + self.lambda_dssim * (1.0 - ssim(predict,gt))
         self.value = value
         return value
 

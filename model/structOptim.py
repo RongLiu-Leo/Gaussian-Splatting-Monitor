@@ -107,7 +107,7 @@ class SplitWithCloneWithPrune(BaseModule):
     def densification_postfix(self, repr, paramOptim, new_tensors_dict):
         optimizable_tensors = paramOptim.cat_tensors(new_tensors_dict)
         repr.update_params(optimizable_tensors)
-        self.reset_stats(repr)
+        self.reset_stats(repr.xyz.shape[0])
 
     def reset_model_opacity(self, repr, paramOptim):
         opacities_new = inverse_sigmoid(torch.min(repr.opacity, torch.ones_like(repr.opacity)*0.01))
@@ -115,7 +115,7 @@ class SplitWithCloneWithPrune(BaseModule):
         repr._opacity = optimizable_tensors["opacity"]
 
     def reset_stats(self, num_points):
-        self.xyz_gradient_accum = torch.zeros((num_points, 1), device="cuda")
-        self.denom = torch.zeros((num_points, 1), device="cuda")
-        self.max_radii2D = torch.zeros((num_points), device="cuda")
+        self.xyz_gradient_accum = torch.zeros((num_points, 1)).cuda()
+        self.denom = torch.zeros((num_points, 1)).cuda()
+        self.max_radii2D = torch.zeros((num_points)).cuda()
 

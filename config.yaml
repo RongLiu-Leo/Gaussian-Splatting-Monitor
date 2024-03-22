@@ -1,17 +1,19 @@
 name: "lego"
+exp_path: "./output/"
 repr: 
   max_sh_degree: 3
 data:
   source_path: "D:/data/lego/"
-  eval: -1
+  eval: 0
   shuffle: True
-train:
-  export_path: "./output/"
+  resolution: -1
+  resolution_scales: [1.0]
+trainer:
   iterations: 30000
   random_background: False
   debug_from: -1
   detect_anomaly: False
-  test_iterations: [7000, 30000]
+  ckpt_iterations: [7000, 30000]
   save_iterations: [7000, 30000]
   quiet: False
   checkpoint_iterations: []
@@ -26,6 +28,9 @@ paramOptim:
   scaling_lr: 0.005
   rotation_lr: 0.001
 structOptim:
+  num_split: 2
+  size_threshold: 20
+  min_opacity: 0.005
   percent_dense: 0.01
   densification_interval: 100
   opacity_reset_interval: 3000
@@ -47,3 +52,31 @@ gui:
   use: False
   ip: "127.0.0.1"
   port: 6009
+
+logger:
+  version: 1
+  disable_existing_loggers: False
+  formatters:
+    datetime:
+      format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    simple:
+      format: "%(message)s"
+  handlers:
+    console:
+      class: "logging.StreamHandler"
+      formatter: "simple"
+      level: "VERBOSE"
+      stream: "ext://sys.stdout"
+    info_file_handler:
+      backupCount: 20
+      class: "logging.handlers.RotatingFileHandler"
+      encoding: "utf8"
+      filename: "info.log"
+      formatter: "datetime"
+      level: "INFO"
+      maxBytes: 10485760
+  root:
+    handlers:
+    - "console"
+    - "info_file_handler"
+    level: "VERBOSE"

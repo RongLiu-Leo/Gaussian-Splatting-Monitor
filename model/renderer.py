@@ -11,10 +11,10 @@ class DiffRasterizerRenderer(BaseModule):
         
     @property
     def background_color(self):
-        if self.background_color == [-1,-1,-1]: # random background
+        if self._background_color == [-1,-1,-1]: # random background
             return torch.rand((3), device="cuda")
         else:
-            return torch.tensor(self.background_color, dtype=torch.float32, device="cuda")
+            return torch.tensor(self._background_color, dtype=torch.float32, device="cuda")
 
     def render(self, repr, camera):
         """

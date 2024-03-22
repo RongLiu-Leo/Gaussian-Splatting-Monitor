@@ -17,9 +17,10 @@ The updated codebase offers several improvements over the original Gaussian Spla
 - TODO: Introduction of a new Python viewer script that builds on SIBRviewer, integrating Remote Viewer and Gaussian Viewer functionalities.
 
 ## Tiny-GS branch
-- [] Make Trainer works
-- [] Test train.py
-- [] Add logger
+- [x] Make Trainer works
+- [x] Test train.py
+- [x] Add logger
+- [] Add Gui
 - [] Delete unnessesary functions
 - [] Modify Matrices
 - [] Modify Render
