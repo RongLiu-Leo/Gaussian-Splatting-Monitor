@@ -2,7 +2,7 @@ import torch
 from random import randint
 from model.base import BaseModule
 from pathlib import Path
-
+import json
 
 class BaseTrainer(BaseModule):
     def __init__(self, cfg, logger, data, repr, loss, renderer, paramOptim, structOptim):
@@ -14,7 +14,27 @@ class BaseTrainer(BaseModule):
         self.renderer = renderer
         self.structOptim = structOptim
         
+        self.export_path = Path(self.export_path)
+
+        # Save point cloud data
+        input_ply_path = self.export_path / "input.ply"
+        with open(ply_path, 'rb') as src_file, open(input_ply_path , 'wb') as dest_file:
+            dest_file.write(src_file.read())
+
+        # Save camera data
+        camera_path = self.export_path /  "cameras.json"
+        json_cams = [camera_image_pair.json for camera_image_pair in data.get_train_pair_list() + data.get_test_pair_list()]
+        with open(camera_path, 'w') as file:
+            json.dump(json_cams, file)
         
+        # Save config
+        namespace_str = f"Namespace(data_device='cuda', \
+                                eval={data.eval}, images='images', \
+                                model_path='{str(data.view_dir)}', resolution={data.cfg.resolution}, \
+                                sh_degree={self.cfg.representations[0].params.max_sh_degree}, source_path='{data.cfg.source_path}', \
+                                white_background={self.cfg.renderers[0].params.background_color == [255,255,255]})"
+        with open(data.view_dir / "cfg_args", 'w') as cfg_log_f:
+            cfg_log_f.write(namespace_str)
 
     @property    
     def state(self):

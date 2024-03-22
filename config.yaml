@@ -1,16 +1,21 @@
-repr:
+name: "lego"
+repr: 
   max_sh_degree: 3
 data:
-  source_path: ""
-  model_path: ""
-  images: "images"
-  resolution: -1
-  white_background: False
-  data_device: "cuda"
-  eval: False
-  convert_SHs_python: False
-  compute_cov3D_python: False
-  debug: False
+  source_path: "D:/data/lego/"
+  eval: -1
+  shuffle: True
+train:
+  export_path: "./output/"
+  iterations: 30000
+  random_background: False
+  debug_from: -1
+  detect_anomaly: False
+  test_iterations: [7000, 30000]
+  save_iterations: [7000, 30000]
+  quiet: False
+  checkpoint_iterations: []
+  start_checkpoint: null
 paramOptim:
   position_lr_init: 0.00016
   position_lr_final: 0.0000016
@@ -37,17 +42,8 @@ renderer:
   prefiltered: False
   override_color: [-1,-1,-1]
   debug: False
+
 gui:
   use: False
   ip: "127.0.0.1"
   port: 6009
-train:
-  iterations: 30000
-  random_background: False
-  debug_from: -1
-  detect_anomaly: False
-  test_iterations: [7000, 30000]
-  save_iterations: [7000, 30000]
-  quiet: False
-  checkpoint_iterations: []
-  start_checkpoint: null

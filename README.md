@@ -16,6 +16,15 @@ The updated codebase offers several improvements over the original Gaussian Spla
 - Expanded support for differentiable rendering attributes, all of which are viewable in real-time SIBR Viewer and can be utilized as loss functions for backpropagation and optimization of the GS model. Supported attributes: RGB, Alpha, Depth, Normal, Edge, Curvature.
 - TODO: Introduction of a new Python viewer script that builds on SIBRviewer, integrating Remote Viewer and Gaussian Viewer functionalities.
 
+## Tiny-GS branch
+- [] Make Trainer works
+- [] Test train.py
+- [] Add logger
+- [] Delete unnessesary functions
+- [] Modify Matrices
+- [] Modify Render
+- [] Test continue training
+- [] Test multi-resolution image
 
 ## Acknowledgments
 

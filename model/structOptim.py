@@ -3,21 +3,19 @@ from model.base import BaseModule
 from utils import build_rotation, inverse_sigmoid
 
 class SplitWithCloneWithPrune(BaseModule):
-    def __init__(self, cfg, logger, spatial_lr_scale, repr, state = None):
+    def __init__(self, cfg, logger, spatial_lr_scale, num_init_points, state = None):
         super().__init__(cfg, logger)
         if state:
-            (self.spatial_lr_scale,
-            self.max_radii2D,
+            (self.max_radii2D,
             self.xyz_gradient_accum,
             self.denom )  = state
         else:
             self.spatial_lr_scale = spatial_lr_scale
-            self.reset_stats(repr)  
+            self.reset_stats(num_init_points)  
 
     @property
     def state(self):
         return (
-            self.spatial_lr_scale,
             self.max_radii2D,
             self.xyz_gradient_accum,
             self.denom  
@@ -116,8 +114,8 @@ class SplitWithCloneWithPrune(BaseModule):
         optimizable_tensors = paramOptim.replace_tensor(opacities_new, "opacity")
         repr._opacity = optimizable_tensors["opacity"]
 
-    def reset_stats(self, repr):
-        self.xyz_gradient_accum = torch.zeros((repr.xyz.shape[0], 1), device="cuda")
-        self.denom = torch.zeros((repr.xyz.shape[0], 1), device="cuda")
-        self.max_radii2D = torch.zeros((repr.xyz.shape[0]), device="cuda")
+    def reset_stats(self, num_points):
+        self.xyz_gradient_accum = torch.zeros((num_points, 1), device="cuda")
+        self.denom = torch.zeros((num_points, 1), device="cuda")
+        self.max_radii2D = torch.zeros((num_points), device="cuda")
 

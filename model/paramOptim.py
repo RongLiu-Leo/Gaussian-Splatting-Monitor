@@ -40,16 +40,15 @@ def get_expon_lr_func(
     return helper
 
 class AdamWithcustomlrParamOptim(BaseModule):
-    def __init__(self, cfg, logger, spatial_lr_scale, repr, max_iter, state = None):
+    def __init__(self, cfg, logger, spatial_lr_scale, repr, state = None):
         super().__init__(cfg, logger)
-        self.optimizer = torch.optim.Adam(self.param_lr_group(repr), lr=0.0, eps=1e-15)
+        self.optimizer = torch.optim.Adam(self.param_lr_groups(repr), lr=0.0, eps=1e-15)
         if state:
             self.optimizer.load_state_dict(state)
         self.xyz_lr_schedule = get_expon_lr_func(lr_init=self.position_lr_init*spatial_lr_scale,
                                                 lr_final=self.position_lr_final*spatial_lr_scale,
                                                 lr_delay_mult=self.position_lr_delay_mult,
                                                 max_steps=self.position_lr_max_steps)
-        self.max_iter = max_iter
 
     @property
     def state(self):
@@ -73,10 +72,9 @@ class AdamWithcustomlrParamOptim(BaseModule):
                 param_group['lr'] = lr
                 return lr
             
-    def update_optim(self,iteration):
-        if iteration < self.max_iter:
-            self.optimizer.step()
-            self.optimizer.zero_grad(set_to_none = True)
+    def update_optim(self):
+        self.optimizer.step()
+        self.optimizer.zero_grad(set_to_none = True)
 
     def prune_optim(self, mask):
         optimizable_tensors = {}

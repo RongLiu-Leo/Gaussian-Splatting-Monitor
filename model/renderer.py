@@ -5,7 +5,10 @@ from model.base import BaseModule
 from diff_gaussian_rasterization import GaussianRasterizationSettings, GaussianRasterizer
 
 class DiffRasterizerRenderer(BaseModule):
-    
+    def __init__(self, cfg, logger):
+        super().__init__(cfg, logger)
+        self._background_color = cfg.get("background_color", [0, 0, 0])
+        
     @property
     def background_color(self):
         if self.background_color == [-1,-1,-1]: # random background
