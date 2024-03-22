@@ -1,9 +1,10 @@
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-from math import exp
-import torch.nn as nn
 from model.base import BaseModule
+from math import exp
+
 class L1WithSSIMLoss(nn.Module, BaseModule):
     def __init__(self,cfg, logger):
         nn.Module.__init__(self)  

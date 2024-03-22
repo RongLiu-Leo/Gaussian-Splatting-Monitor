@@ -1,8 +1,44 @@
-from model import GaussianRepr, l1_loss, 
+from model import (
+    GaussianRepr, 
+    L1WithSSIMLoss, 
+    AdamWithcustomlrParamOptim, 
+    DiffRasterizerRenderer,
+    SplitWithCloneWithPrune,
+    BaseTrainer)
+import yaml
 
-def main():
+
+def main():    
+    # init config and logger
+    with open('config.yaml', 'r') as file:
+        cfg = yaml.safe_load(file)
     logger = 0
-    cfg = {"set":1}
+
+    # init data
+    data = 0
+    spatial_lr_scale = data.spatial_scale
+
+    # init representation
+    repr = GaussianRepr(cfg.get('repr'), logger)
+    repr.init_from_pcd(data.point_cloud, spatial_lr_scale)
+    
+    # init Optimizers
+    max_iter = cfg.get('trainer').get('iterations')
+    paramOptim = AdamWithcustomlrParamOptim(cfg.get('paramOptim'), logger, spatial_lr_scale, repr, max_iter)
+    structOptim = SplitWithCloneWithPrune(cfg.get('structOptim'), logger, spatial_lr_scale, repr)
+
+    # init rederer and loss
+    renderer = DiffRasterizerRenderer(cfg.get('renderer'), logger)
+    loss = L1WithSSIMLoss(cfg.get('loss'), logger)
+
+    # init trainer
+    trainer = BaseTrainer(cfg.get('trainer'), logger, data, repr, loss, renderer, paramOptim, structOptim)
+
+    # train!
+    trainer.train()
+    
+    
+
 
     first_iter = 0
     gaussians = GaussianModel(dataset.sh_degree)

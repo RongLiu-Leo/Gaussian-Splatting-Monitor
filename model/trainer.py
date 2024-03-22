@@ -1,13 +1,20 @@
 import torch
 from random import randint
-import gsplatstudio
+from model.base import BaseModule
 from pathlib import Path
-from gsplatstudio.models.trainer.base_trainer import BaseTrainer
-from gsplatstudio.utils.type_utils import *
-from gsplatstudio.utils.progress_bar import ProgressBar
 
 
-class VanillaTrainer(BaseTrainer):
+class BaseTrainer(BaseModule):
+    def __init__(self, cfg, logger, data, repr, loss, renderer, paramOptim, structOptim):
+        super().__init__(self, cfg, logger)
+        self.data = data
+        self.repr = repr
+        self.loss = loss
+        self.paramOptim = paramOptim
+        self.renderer = renderer
+        self.structOptim = structOptim
+        
+        
 
     @property    
     def state(self):
@@ -17,31 +24,7 @@ class VanillaTrainer(BaseTrainer):
             "structOptim": self.structOptim.state,
             "paramOptim": self.paramOptim.state,
             "iteration": self.iteration
-        }
-    
-    def setup_components(self, data, representation, loss, paramOptim, renderer, structOptim, first_iteration, **kwargs):
-        self.data = data
-        self.representation = representation
-        self.loss = loss
-        self.paramOptim = paramOptim
-        self.renderer = renderer
-        self.structOptim = structOptim
-        self.first_iteration = first_iteration
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        self.cfg.save_iterations = [self.first_iteration + i for i in self.cfg.save_iterations]
-        
-        spatial_lr_scale = self.data.spatial_scale
-        
-        # init representation from data
-        self.representation.init_from_pcd(self.data.point_cloud, spatial_lr_scale)
-        
-        # init paramOptim from representation
-        param_lr_group = self.representation.create_param_lr_groups(self.paramOptim.cfg)
-        self.paramOptim.init_optim(param_lr_group, spatial_lr_scale, self.cfg.iterations)
-        
-        # init structOptim from representation
-        self.structOptim.init_optim(self.representation, spatial_lr_scale)
+        }        
 
     def restore_components(self, system_path, iteration):
         ckpt_path = Path(system_path) / f"{iteration}.pth"
@@ -66,7 +49,7 @@ class VanillaTrainer(BaseTrainer):
             self.logger.warning(f"Cannot load {ckpt_path}! Error: {e} Train from scratch")
             self.setup_components()
 
-    def train(self) -> None:
+    def train(self):
         ema_loss_for_log = 0.0
         viewpoint_stack = None
         is_white_background = self.renderer.background_color == [255,255,255]

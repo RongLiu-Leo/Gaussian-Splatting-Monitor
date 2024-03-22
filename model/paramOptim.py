@@ -1,7 +1,8 @@
 import torch
-from model.base import BaseModule
 import numpy as np
 import torch.nn as nn
+from model.base import BaseModule
+
 
 def get_expon_lr_func(
     lr_init, lr_final, lr_delay_steps=0, lr_delay_mult=1.0, max_steps=1000000
@@ -39,35 +40,32 @@ def get_expon_lr_func(
     return helper
 
 class AdamWithcustomlrParamOptim(BaseModule):
-    def __init__(self, cfg, logger):
+    def __init__(self, cfg, logger, spatial_lr_scale, repr, max_iter, state = None):
         super().__init__(cfg, logger)
-        self.optimizer = None
-        self.spatial_lr_scale = 1.0
-        self.max_iter = 0
-        self.xyz_lr_schedule = None
-    
+        self.optimizer = torch.optim.Adam(self.param_lr_group(repr), lr=0.0, eps=1e-15)
+        if state:
+            self.optimizer.load_state_dict(state)
+        self.xyz_lr_schedule = get_expon_lr_func(lr_init=self.position_lr_init*spatial_lr_scale,
+                                                lr_final=self.position_lr_final*spatial_lr_scale,
+                                                lr_delay_mult=self.position_lr_delay_mult,
+                                                max_steps=self.position_lr_max_steps)
+        self.max_iter = max_iter
+
     @property
     def state(self):
         return self.optimizer.state_dict()
-
-    def _restore(self, state, spatial_lr_scale, param_lr_group, max_iter):
-        self.optimizer = torch.optim.Adam(param_lr_group, lr=0.0, eps=1e-15)
-        self.optimizer.load_state_dict(state)
-        self.spatial_lr_scale = spatial_lr_scale 
-        self.xyz_lr_schedule = get_expon_lr_func(lr_init=self.cfg.position_lr_init*spatial_lr_scale,
-                                                        lr_final=self.cfg.position_lr_final*spatial_lr_scale,
-                                                        lr_delay_mult=self.cfg.position_lr_delay_mult,
-                                                        max_steps=self.cfg.position_lr_max_steps)
-        self.max_iter = max_iter
-
-    def init_optim(self, param_lr_group, spatial_lr_scale, max_iter):
-        self.optimizer = torch.optim.Adam(param_lr_group, lr=0.0, eps=1e-15)
-        self.xyz_lr_schedule = get_expon_lr_func(lr_init=self.cfg.position_lr_init*spatial_lr_scale,
-                                                lr_final=self.cfg.position_lr_final*spatial_lr_scale,
-                                                lr_delay_mult=self.cfg.position_lr_delay_mult,
-                                                max_steps=self.cfg.position_lr_max_steps)
-        self.max_iter = max_iter
-
+    
+    def param_lr_groups(self, repr):
+        param_groups = [
+            {'params': [repr._xyz], 'lr': self.position_lr_init * repr.spatial_lr_scale, "name": "xyz"},
+            {'params': [repr._features_dc], 'lr': self.feature_lr, "name": "f_dc"},
+            {'params': [repr._features_rest], 'lr': self.feature_lr / 20.0, "name": "f_rest"},
+            {'params': [repr._opacity], 'lr': self.opacity_lr, "name": "opacity"},
+            {'params': [repr._scaling], 'lr': self.scaling_lr, "name": "scaling"},
+            {'params': [repr._rotation], 'lr': self.rotation_lr, "name": "rotation"}
+        ]
+        return param_groups
+    
     def update_lr(self,iteration):
         for param_group in self.optimizer.param_groups:
             if param_group["name"] == "xyz":

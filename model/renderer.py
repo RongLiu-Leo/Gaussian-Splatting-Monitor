@@ -1,10 +1,11 @@
-from model.base import BaseModule
-import torch
 import math
+import torch
+from utils import eval_sh
+from model.base import BaseModule
 from diff_gaussian_rasterization import GaussianRasterizationSettings, GaussianRasterizer
-from utils.sh_utils import eval_sh
 
 class DiffRasterizerRenderer(BaseModule):
+    
     @property
     def background_color(self):
         if self.background_color == [-1,-1,-1]: # random background

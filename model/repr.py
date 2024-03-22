@@ -1,23 +1,32 @@
 import torch
 import numpy as np
 from torch import nn
+from base import BaseModule
+from simple_knn._C import distCUDA2
 from plyfile import PlyData, PlyElement
 from utils import RGB2SH, BasicPointCloud, inverse_sigmoid, build_covariance_from_scaling_rotation
-from simple_knn._C import distCUDA2
-from base import BaseModule
 
 
 class GaussianRepr(BaseModule):
-    def __init__(self, cfg, logger):
+    def __init__(self, cfg, logger, spatial_lr_scale, state=None):
         super().__init__(cfg, logger)
-        self.sh_degree = 0
-        self._xyz = torch.empty(0)
-        self._features_dc = torch.empty(0)
-        self._features_rest = torch.empty(0)
-        self._scaling = torch.empty(0)
-        self._rotation = torch.empty(0)
-        self._opacity = torch.empty(0)
-        self.spatial_lr_scale = 0
+        if state:
+            (self.sh_degree,
+            self._xyz,
+            self._features_dc,
+            self._features_rest,
+            self._scaling,
+            self._rotation,
+            self._opacity) = state
+        else:
+            self.sh_degree = 0
+            self._xyz = torch.empty(0)
+            self._features_dc = torch.empty(0)
+            self._features_rest = torch.empty(0)
+            self._scaling = torch.empty(0)
+            self._rotation = torch.empty(0)
+            self._opacity = torch.empty(0)
+        self.spatial_lr_scale = spatial_lr_scale
         self.scaling_activation = torch.exp
         self.scaling_inverse_activation = torch.log
         self.covariance_activation = build_covariance_from_scaling_rotation
@@ -69,14 +78,14 @@ class GaussianRepr(BaseModule):
 
     def init_from_pcd(self, pcd : BasicPointCloud, spatial_lr_scale : float):
         self.spatial_lr_scale = spatial_lr_scale
-        fused_point_cloud = torch.tensor(np.asarray(pcd.points)).float().to(self.cfg.device)
-        fused_color = RGB2SH(torch.tensor(np.asarray(pcd.colors)).float().to(self.cfg.device))
-        features = torch.zeros((fused_color.shape[0], 3, (self.max_sh_degree + 1) ** 2)).float().to(self.cfg.device)
+        fused_point_cloud = torch.tensor(np.asarray(pcd.points)).float().cuda()
+        fused_color = RGB2SH(torch.tensor(np.asarray(pcd.colors)).float().cuda())
+        features = torch.zeros((fused_color.shape[0], 3, (self.max_sh_degree + 1) ** 2)).float().cuda()
         features[:, :3, 0 ] = fused_color
         features[:, 3:, 1:] = 0.0
         self.logger.info(f"Number of points at initialisation : {fused_point_cloud.shape[0]}", )
 
-        dist2 = torch.clamp_min(distCUDA2(torch.from_numpy(np.asarray(pcd.points)).float().to(self.cfg.device)), 0.0000001)
+        dist2 = torch.clamp_min(distCUDA2(torch.from_numpy(np.asarray(pcd.points)).float().cuda()), 0.0000001)
         scales = torch.log(torch.sqrt(dist2))[...,None].repeat(1, 3)
         rots = torch.zeros((fused_point_cloud.shape[0], 4), device="cuda")
         rots[:, 0] = 1
@@ -97,16 +106,7 @@ class GaussianRepr(BaseModule):
             print(f"tensor in size {list(param[3])}, device='{param.device}', requires_grad={param.requires_grad}")
             print("-----------------------------------")
     
-    def create_param_lr_groups(self, cfg):
-        param_groups = [
-            {'params': [self._xyz], 'lr': cfg.position_lr_init * self.spatial_lr_scale, "name": "xyz"},
-            {'params': [self._features_dc], 'lr': cfg.feature_lr, "name": "f_dc"},
-            {'params': [self._features_rest], 'lr': cfg.feature_lr / 20.0, "name": "f_rest"},
-            {'params': [self._opacity], 'lr': cfg.opacity_lr, "name": "opacity"},
-            {'params': [self._scaling], 'lr': cfg.scaling_lr, "name": "scaling"},
-            {'params': [self._rotation], 'lr': cfg.rotation_lr, "name": "rotation"}
-        ]
-        return param_groups
+
     
     def update_params(self,param_dict):
         if "xyz" in param_dict:
@@ -196,12 +196,3 @@ class GaussianRepr(BaseModule):
 
         self.sh_degree = self.max_sh_degree
     
-    def _restore(self, state, spatial_lr_scale):
-        (self.sh_degree,
-        self._xyz,
-        self._features_dc,
-        self._features_rest,
-        self._scaling,
-        self._rotation,
-        self._opacity) = state
-        self.spatial_lr_scale = spatial_lr_scale
