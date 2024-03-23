@@ -42,8 +42,8 @@ def get_expon_lr_func(
 class AdamWithcustomlrParamOptim(BaseModule):
     def __init__(self, cfg, logger, spatial_lr_scale, repr):
         super().__init__(cfg, logger)
-        self.optimizer = torch.optim.Adam(self.param_lr_groups(repr), lr=0.0, eps=1e-15)
-
+        self.optimizer = torch.optim.Adam(self.param_lr_groups(repr, spatial_lr_scale), lr=0.0, eps=1e-15)
+        self.spatial_lr_scale = spatial_lr_scale
         self.xyz_lr_schedule = get_expon_lr_func(lr_init=self.position_lr_init*spatial_lr_scale,
                                                 lr_final=self.position_lr_final*spatial_lr_scale,
                                                 lr_delay_mult=self.position_lr_delay_mult,
@@ -56,9 +56,9 @@ class AdamWithcustomlrParamOptim(BaseModule):
     def load(self, state):
         self.optimizer.load_state_dict(state)
         
-    def param_lr_groups(self, repr):
+    def param_lr_groups(self, repr, spatial_lr_scale):
         param_groups = [
-            {'params': [repr._xyz], 'lr': self.position_lr_init * repr.spatial_lr_scale, "name": "xyz"},
+            {'params': [repr._xyz], 'lr': self.position_lr_init * spatial_lr_scale, "name": "xyz"},
             {'params': [repr._features_dc], 'lr': self.feature_lr, "name": "f_dc"},
             {'params': [repr._features_rest], 'lr': self.feature_lr / 20.0, "name": "f_rest"},
             {'params': [repr._opacity], 'lr': self.opacity_lr, "name": "opacity"},

@@ -8,7 +8,7 @@ from utils import RGB2SH, BasicPointCloud, inverse_sigmoid, build_covariance_fro
 
 
 class GaussianRepr(BaseModule):
-    def __init__(self, cfg, logger, spatial_lr_scale, state=None):
+    def __init__(self, cfg, logger, state=None):
         super().__init__(cfg, logger)
         self.sh_degree = 0
         self._xyz = torch.empty(0)
@@ -17,7 +17,6 @@ class GaussianRepr(BaseModule):
         self._scaling = torch.empty(0)
         self._rotation = torch.empty(0)
         self._opacity = torch.empty(0)
-        self.spatial_lr_scale = spatial_lr_scale
         self.scaling_activation = torch.exp
         self.scaling_inverse_activation = torch.log
         self.covariance_activation = build_covariance_from_scaling_rotation

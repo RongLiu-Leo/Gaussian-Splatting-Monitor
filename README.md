@@ -24,8 +24,8 @@ The updated codebase offers several improvements over the original Gaussian Spla
 - [x] Delete unnessesary functions
 - [x] Test continue training
 - [x] Add recorder
-- [] Modify Matrices
 - [] Modify Render
+- [] Modify Matrice
 - [] Test multi-resolution image
 
 ## Acknowledgments

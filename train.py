@@ -63,8 +63,7 @@ def main(config_path):
     data = ColmapData(cfg = cfg.get('data'), logger = logger)
 
     # init representation
-    repr = GaussianRepr(cfg = cfg.get('repr'), logger = logger, 
-                        spatial_lr_scale = data.spatial_scale)
+    repr = GaussianRepr(cfg = cfg.get('repr'), logger = logger)
     if use_checkpoint:
         repr.load(exist_ckpt_state['repr'])
     else:
