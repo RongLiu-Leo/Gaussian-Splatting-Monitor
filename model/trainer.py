@@ -48,7 +48,6 @@ class BaseTrainer(BaseModule):
     @property    
     def state(self):
         return {
-            "data": self.data.spatial_scale,
             "repr": self.repr.state,
             "structOptim": self.structOptim.state,
             "paramOptim": self.paramOptim.state,

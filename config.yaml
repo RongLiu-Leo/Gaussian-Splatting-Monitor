@@ -1,24 +1,22 @@
 name: "lego"
 exp_path: "./output/"
 seed: 0
+
 repr: 
   max_sh_degree: 3
+
 data:
   source_path: "D:/data/lego/"
   eval: 0
   shuffle: True
   resolution: -1
   resolution_scales: [1.0]
+
 trainer:
   iterations: 30000
-  random_background: False
-  debug_from: -1
-  detect_anomaly: False
   ckpt_iterations: [7000, 30000]
   save_iterations: [7000, 30000]
-  quiet: False
-  checkpoint_iterations: []
-  start_checkpoint: null
+
 paramOptim:
   position_lr_init: 0.00016
   position_lr_final: 0.0000016
@@ -28,6 +26,7 @@ paramOptim:
   opacity_lr: 0.05
   scaling_lr: 0.005
   rotation_lr: 0.001
+
 structOptim:
   num_split: 2
   size_threshold: 20
@@ -38,8 +37,10 @@ structOptim:
   densify_from_iter: 500
   densify_until_iter: 15000
   densify_grad_threshold: 0.0002
+
 loss:
   lambda_dssim: 0.2
+
 renderer:
   background_color: [0,0,0]
   compute_cov3D_python: False
@@ -48,6 +49,10 @@ renderer:
   prefiltered: False
   override_color: [-1,-1,-1]
   debug: False
+
+checkpoint:
+  use: False
+  path: "./output/lego_30000.pth"
 
 networkGui:
   use: False

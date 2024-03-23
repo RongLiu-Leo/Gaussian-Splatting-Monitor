@@ -21,7 +21,7 @@ The updated codebase offers several improvements over the original Gaussian Spla
 - [x] Test train.py
 - [x] Add logger
 - [x] Add Gui
-- [] Delete unnessesary functions
+- [x] Delete unnessesary functions
 - [] Modify Matrices
 - [] Modify Render
 - [] Test continue training
