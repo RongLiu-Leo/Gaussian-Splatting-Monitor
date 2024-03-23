@@ -12,8 +12,6 @@ class BasicCamera():
                  **kwargs):
         super(BasicCamera, self).__init__()
 
-
-        
         self.fov_x, self.fov_y = fov_x, fov_y
         self.width, self.height = width, height
         self.z_far = z_far
@@ -22,19 +20,19 @@ class BasicCamera():
         self.device = device
         self.trans=np.array([0.0, 0.0, 0.0])
         self.scale=1.0
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        if world_view_transform is not None:
-            self.world_view_transform = world_view_transform
+        if R is not None and T is not None:
+            self.R = R
+            self.T = T
+            self.world_view_transform = torch.tensor(getWorld2View(self.R, self.T, self.trans, self.scale)).transpose(0, 1).to(self.device)
+        elif world_view_transform is not None:
+            self.world_view_transform = world_view_transform.to(self.device)
             # TODO: check if this is correct
             # self.R = self.world_view_transform[:3, :3].cpu().numpy()
             # self.T = self.world_view_transform[:3, 3].cpu().numpy()
-        elif R is not None and T is not None:
-            self.R = R
-            self.T = T
-            self.world_view_transform = torch.tensor(getWorld2View(R, T, self.trans, self.scale)).to(self.device)
         else:
             raise ValueError("Either R and T or world_view_transform must be provided.")
+        for key, value in kwargs.items():
+            setattr(self, key, value)
     @property
     def projection_matrix(self):
         return getProjectionMatrix(znear=self.z_near, zfar=self.z_far, fovX=self.fov_x, fovY=self.fov_y).transpose(0,1).to(self.device)

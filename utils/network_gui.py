@@ -5,19 +5,6 @@ import torch
 import traceback
 from model.base import BaseModule
 from utils import BasicCamera, render_net_image
-class MiniCam:
-    def __init__(self, width, height, fovy, fovx, znear, zfar, world_view_transform, full_proj_transform):
-        self.image_width = width
-        self.image_height = height    
-        self.FoVy = fovy
-        self.FoVx = fovx
-        self.znear = znear
-        self.zfar = zfar
-        self.world_view_transform = world_view_transform
-        self.full_proj_transform = full_proj_transform
-        view_inv = torch.inverse(self.world_view_transform)
-        self.camera_center = view_inv[3][:3]
-        self.projection_matrix = torch.bmm(self.world_view_transform.unsqueeze(0).inverse(), self.full_proj_transform.unsqueeze(0)).squeeze(0)
 
 class NetworkGUI(BaseModule):
     def __init__(self, cfg, logger):
@@ -97,7 +84,7 @@ class NetworkGUI(BaseModule):
                 do_rot_scale_python = bool(message["rot_scale_python"])
                 keep_alive = bool(message["keep_alive"])
                 scaling_modifier = message["scaling_modifier"]
-                world_view_transform = torch.reshape(torch.tensor(message["view_matrix"]), (4, 4)).cuda()
+                world_view_transform = torch.reshape(torch.tensor(message["view_matrix"]), (4, 4))
                 world_view_transform[:,1] = -world_view_transform[:,1]
                 world_view_transform[:,2] = -world_view_transform[:,2]
 
