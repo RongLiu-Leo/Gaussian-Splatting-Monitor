@@ -4,7 +4,7 @@ import struct
 import torch
 import traceback
 from model.base import BaseModule
-from utils import BasicCamera, render_net_image
+from utils import BasicCamera
 
 class NetworkGUI(BaseModule):
     def __init__(self, cfg, logger):
@@ -24,9 +24,8 @@ class NetworkGUI(BaseModule):
                 net_image_bytes = None
                 custom_cam, do_training, _, _, keep_alive, _, render_mode_id = self.receive()
                 if custom_cam != None:
-                    render_pkg = renderer.render(repr = repr, camera = custom_cam)
                     render_mode = self.render_modes[render_mode_id].lower()
-                    net_image = render_net_image(render_pkg, render_mode, custom_cam)
+                    net_image = renderer.render_img(repr = repr, camera = custom_cam, render_mode = render_mode)
                     net_image_bytes = memoryview((torch.clamp(net_image, min=0, max=1.0) * 255).byte().permute(1, 2, 0).contiguous().cpu().numpy())
                 self.send(net_image_bytes, data.source_path)
                 if do_training and ((iteration < max_iteration) or not keep_alive):

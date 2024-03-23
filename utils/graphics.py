@@ -19,15 +19,6 @@ class BasicPointCloud(NamedTuple):
     colors : np.array
     normals : np.array
 
-def geom_transform_points(points, transf_matrix):
-    P, _ = points.shape
-    ones = torch.ones(P, 1, dtype=points.dtype, device=points.device)
-    points_hom = torch.cat([points, ones], dim=1)
-    points_out = torch.matmul(points_hom, transf_matrix.unsqueeze(0))
-
-    denom = points_out[..., 3:] + 0.0000001
-    return (points_out[..., :3] / denom).squeeze(dim=0)
-
 def getWorld2View(R, t, translate=np.array([.0, .0, .0]), scale=1.0):
     Rt = np.zeros((4, 4))
     Rt[:3, :3] = R.transpose()

@@ -73,7 +73,7 @@ class BaseTrainer(BaseModule):
             viewpoint_pair = viewpoint_stack.pop(randint(0, len(viewpoint_stack)-1))
 
             # Render
-            render_pkg = self.renderer.render(repr = self.repr, camera = viewpoint_pair.camera)
+            render_pkg = self.renderer.render_pkg(repr = self.repr, camera = viewpoint_pair.camera)
 
             # Loss
             gt_image = viewpoint_pair.image.get_resolution_data_from_path(self.data.resolution, self.data.resolution_scales[0])
