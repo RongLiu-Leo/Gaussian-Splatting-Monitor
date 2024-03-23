@@ -63,7 +63,6 @@ def main(config_path):
     data = ColmapData(cfg = cfg.get('data'), logger = logger)
 
     # init representation
-
     repr = GaussianRepr(cfg = cfg.get('repr'), logger = logger, 
                         spatial_lr_scale = data.spatial_scale)
     if use_checkpoint:
@@ -88,11 +87,18 @@ def main(config_path):
     renderer = DiffRasterizerRenderer(cfg = cfg.get('renderer'), logger = logger)
     loss = L1WithSSIMLoss(cfg = cfg.get('loss'), logger = logger)
      
-    # init trainer
+    
+    # init recorder
     if use_checkpoint:
         first_iteration = exist_ckpt_state['iteration'] + 1
     else:
         first_iteration = 1
+    recorder = Recorder(cfg = cfg.get('recorder'), logger = logger, 
+                        info_path = info_path, first_iter = first_iteration, 
+                        max_iter = cfg.get('trainer').get('iterations'))
+    
+
+    # init trainer
     trainer = BaseTrainer(cfg = cfg.get('trainer'), logger = logger, 
                           data = data, repr = repr, loss = loss, 
                           paramOptim = paramOptim, 
@@ -101,6 +107,7 @@ def main(config_path):
                           networkGui = networkGui,
                           result_path = result_path,
                           ckpt_path = ckpt_path,
+                          recorder = recorder,
                           first_iteration = first_iteration)
     trainer.init_save_results()
     

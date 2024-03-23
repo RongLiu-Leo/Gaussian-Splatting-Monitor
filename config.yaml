@@ -50,6 +50,17 @@ renderer:
   override_color: [-1,-1,-1]
   debug: False
 
+recorder:
+  - name: "ema_loss_for_log"
+    value_type: "number"
+    save_intervals: 1000
+  - name: "loss"
+    value_type: "number"
+    save_intervals: 1000
+  - name: "image"
+    value_type: "imageDict"
+    save_iterations: [100,7000,15000]  
+
 checkpoint:
   use: False
   path: "./output/lego@20240322-205727/ckpts/7000.pth"

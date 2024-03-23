@@ -6,7 +6,7 @@ import json
 from utils import ProgressBar
 class BaseTrainer(BaseModule):
     def __init__(self, cfg, logger, data, repr, loss, renderer, paramOptim, structOptim,
-                 result_path, ckpt_path, networkGui, first_iteration = 1):
+                 result_path, ckpt_path, networkGui, recorder, first_iteration = 1):
         super().__init__(cfg, logger)
         self.data = data
         self.repr = repr
@@ -17,6 +17,7 @@ class BaseTrainer(BaseModule):
         self.result_path = Path(result_path)
         self.ckpt_path = Path(ckpt_path)
         self.networkGui = networkGui
+        self.recorder = recorder
         self.first_iteration = first_iteration
         self.progress_bar = ProgressBar(first_iter = self.first_iteration,
                                         total_iters = self.iterations)
@@ -81,10 +82,10 @@ class BaseTrainer(BaseModule):
             self.iteration = iteration
 
             with torch.no_grad():
-                
                 ema_loss_for_log = 0.4 * loss.item() + 0.6 * ema_loss_for_log
                 self.progress_bar.update(iteration, Loss=ema_loss_for_log)
-
+                self.recorder.snapshot("ema_loss_for_log", ema_loss_for_log)
+                self.recorder.snapshot("loss", loss.item())  
                 # Log and save
                 if iteration in self.save_iterations:
                     self.save_scene(iteration)
@@ -96,7 +97,7 @@ class BaseTrainer(BaseModule):
                 self.paramOptim.update_optim()
 
                 # Recorder step
-                # self.recorder.update(iteration)
+                self.recorder.update(iteration)
 
                 # Checkpoint saving step
                 if iteration in self.ckpt_iterations:
