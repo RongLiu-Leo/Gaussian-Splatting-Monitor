@@ -49,10 +49,11 @@ renderer:
   override_color: [-1,-1,-1]
   debug: False
 
-gui:
+networkGui:
   use: False
-  ip: "127.0.0.1"
+  host: "127.0.0.1"
   port: 6009
+  render_modes : ['RGB', 'Alpha', 'Depth', 'Normal', 'Curvature', 'Edge']
 
 logger:
   version: 1

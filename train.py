@@ -14,9 +14,9 @@ from utils import *
 import random
 
 def init_settings(seed):
-    random.seed(0)
-    np.random.seed(0)
-    torch.manual_seed(0)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
     torch.cuda.set_device(torch.device("cuda:0"))
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
@@ -38,7 +38,10 @@ def main(config_path):
     info_path.mkdir(parents=True, exist_ok=True)
     setup_logging(cfg.get('logger'), info_path)
     logger =  init_logger(name)
-     
+    
+    # init network gui
+    networkGui = NetworkGUI(cfg = cfg.get('networkGui'), logger = logger)
+
     # init data
     data = ColmapData(cfg = cfg.get('data'), logger = logger)
 
@@ -70,6 +73,7 @@ def main(config_path):
                           paramOptim = paramOptim, 
                           structOptim = structOptim,
                           renderer = renderer,
+                          networkGui = networkGui,
                           result_path = result_path,
                           ckpt_path = ckpt_path)
     trainer.init_save_results()

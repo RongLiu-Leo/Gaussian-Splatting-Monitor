@@ -6,7 +6,7 @@ import json
 from utils import ProgressBar
 class BaseTrainer(BaseModule):
     def __init__(self, cfg, logger, data, repr, loss, renderer, paramOptim, structOptim,
-                 result_path, ckpt_path):
+                 result_path, ckpt_path, networkGui):
         super().__init__(cfg, logger)
         self.data = data
         self.repr = repr
@@ -16,6 +16,7 @@ class BaseTrainer(BaseModule):
         self.structOptim = structOptim
         self.result_path = Path(result_path)
         self.ckpt_path = Path(ckpt_path)
+        self.networkGui = networkGui
 
         self.progress_bar = ProgressBar(self.iterations + 1)
 
@@ -58,7 +59,9 @@ class BaseTrainer(BaseModule):
         ema_loss_for_log = 0.0
         viewpoint_stack = None
         is_white_background = self.renderer.background_color == [255,255,255]
-        for iteration in range(1, self.iterations+1):    
+        for iteration in range(1, self.iterations+1):
+               
+            self.networkGui.process_iter(self.renderer, self.repr, self.data, iteration, self.iterations)
             self.paramOptim.update_lr(iteration)
             # Every 1000 its we increase the levels of SH up to a maximum degree
             if iteration % 1000 == 0:

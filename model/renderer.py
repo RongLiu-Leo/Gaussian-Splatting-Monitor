@@ -23,7 +23,7 @@ class DiffRasterizerRenderer(BaseModule):
         """
     
         # Create zero tensor. We will use it to make pytorch return gradients of the 2D (screen-space) means
-        screenspace_points = torch.zeros_like(repr.xyz, dtype=repr.xyz.dtype, requires_grad=True, device="cuda") + 0
+        screenspace_points = torch.zeros_like(repr.xyz, dtype=repr.xyz.dtype, requires_grad=True).cuda() + 0
         try:
             screenspace_points.retain_grad()
         except:

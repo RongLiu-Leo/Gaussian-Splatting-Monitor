@@ -5,28 +5,36 @@ from PIL import Image
 import torchvision.transforms as transforms
 from utils import fov2focal, getWorld2View, getProjectionMatrix
 
-class BasicCamera(nn.Module):
-    def __init__(self, R, T, fov_x, fov_y, height, width, 
+class BasicCamera():
+    def __init__(self, fov_x, fov_y, height, width, 
+                 R = None, T = None, world_view_transform = None,
                  z_far = 100.0, z_near = 0.01, uid = 0, device = 'cuda',
                  **kwargs):
         super(BasicCamera, self).__init__()
-        self.R = R
-        self.T = T
+
+
+        
         self.fov_x, self.fov_y = fov_x, fov_y
         self.width, self.height = width, height
         self.z_far = z_far
         self.z_near = z_near
         self.uid = uid
         self.device = device
-
+        self.trans=np.array([0.0, 0.0, 0.0])
+        self.scale=1.0
         for key, value in kwargs.items():
             setattr(self, key, value)
-        self.trans=np.array([0.0, 0.0, 0.0]), 
-        self.scale=1.0
-    
-    @property
-    def world_view_transform(self):
-        return torch.tensor(getWorld2View(self.R, self.T, self.trans, self.scale)).transpose(0, 1).to(self.device)
+        if world_view_transform is not None:
+            self.world_view_transform = world_view_transform
+            # TODO: check if this is correct
+            # self.R = self.world_view_transform[:3, :3].cpu().numpy()
+            # self.T = self.world_view_transform[:3, 3].cpu().numpy()
+        elif R is not None and T is not None:
+            self.R = R
+            self.T = T
+            self.world_view_transform = torch.tensor(getWorld2View(R, T, self.trans, self.scale)).to(self.device)
+        else:
+            raise ValueError("Either R and T or world_view_transform must be provided.")
     @property
     def projection_matrix(self):
         return getProjectionMatrix(znear=self.z_near, zfar=self.z_far, fovX=self.fov_x, fovY=self.fov_y).transpose(0,1).to(self.device)
