@@ -4,14 +4,9 @@ from utils import build_rotation, inverse_sigmoid
 
 class SplitWithCloneWithPrune(BaseModule):
     def __init__(self, cfg, logger, spatial_lr_scale, num_init_points, state = None):
-        super().__init__(cfg, logger)
-        if state:
-            (self.max_radii2D,
-            self.xyz_gradient_accum,
-            self.denom )  = state
-        else:
-            self.spatial_lr_scale = spatial_lr_scale
-            self.reset_stats(num_init_points)  
+        super().__init__(cfg, logger)        
+        self.spatial_lr_scale = spatial_lr_scale
+        self.reset_stats(num_init_points)  
 
     @property
     def state(self):
@@ -20,7 +15,12 @@ class SplitWithCloneWithPrune(BaseModule):
             self.xyz_gradient_accum,
             self.denom  
         )
-            
+    
+    def load(self, state):
+        (self.max_radii2D,
+        self.xyz_gradient_accum,
+        self.denom )  = state
+
     def update_optim(self, iteration, repr, paramOptim, render_pkg, is_white_background):
         viewspace_point_tensor, visibility_filter, radii = render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
         if iteration < self.densify_until_iter:

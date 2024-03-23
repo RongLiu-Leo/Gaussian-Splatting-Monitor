@@ -40,11 +40,10 @@ def get_expon_lr_func(
     return helper
 
 class AdamWithcustomlrParamOptim(BaseModule):
-    def __init__(self, cfg, logger, spatial_lr_scale, repr, state = None):
+    def __init__(self, cfg, logger, spatial_lr_scale, repr):
         super().__init__(cfg, logger)
         self.optimizer = torch.optim.Adam(self.param_lr_groups(repr), lr=0.0, eps=1e-15)
-        if state:
-            self.optimizer.load_state_dict(state)
+
         self.xyz_lr_schedule = get_expon_lr_func(lr_init=self.position_lr_init*spatial_lr_scale,
                                                 lr_final=self.position_lr_final*spatial_lr_scale,
                                                 lr_delay_mult=self.position_lr_delay_mult,
@@ -54,6 +53,9 @@ class AdamWithcustomlrParamOptim(BaseModule):
     def state(self):
         return self.optimizer.state_dict()
     
+    def load(self, state):
+        self.optimizer.load_state_dict(state)
+        
     def param_lr_groups(self, repr):
         param_groups = [
             {'params': [repr._xyz], 'lr': self.position_lr_init * repr.spatial_lr_scale, "name": "xyz"},

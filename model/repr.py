@@ -10,22 +10,13 @@ from utils import RGB2SH, BasicPointCloud, inverse_sigmoid, build_covariance_fro
 class GaussianRepr(BaseModule):
     def __init__(self, cfg, logger, spatial_lr_scale, state=None):
         super().__init__(cfg, logger)
-        if state:
-            (self.sh_degree,
-            self._xyz,
-            self._features_dc,
-            self._features_rest,
-            self._scaling,
-            self._rotation,
-            self._opacity) = state
-        else:
-            self.sh_degree = 0
-            self._xyz = torch.empty(0)
-            self._features_dc = torch.empty(0)
-            self._features_rest = torch.empty(0)
-            self._scaling = torch.empty(0)
-            self._rotation = torch.empty(0)
-            self._opacity = torch.empty(0)
+        self.sh_degree = 0
+        self._xyz = torch.empty(0)
+        self._features_dc = torch.empty(0)
+        self._features_rest = torch.empty(0)
+        self._scaling = torch.empty(0)
+        self._rotation = torch.empty(0)
+        self._opacity = torch.empty(0)
         self.spatial_lr_scale = spatial_lr_scale
         self.scaling_activation = torch.exp
         self.scaling_inverse_activation = torch.log
@@ -71,6 +62,15 @@ class GaussianRepr(BaseModule):
             self._rotation,
             self._opacity,
         )
+
+    def load(self, state):
+        (self.sh_degree,
+        self._xyz,
+        self._features_dc,
+        self._features_rest,
+        self._scaling,
+        self._rotation,
+        self._opacity) = state
 
     def increment_sh_degree(self):
         if self.sh_degree < self.max_sh_degree:

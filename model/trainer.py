@@ -6,7 +6,7 @@ import json
 from utils import ProgressBar
 class BaseTrainer(BaseModule):
     def __init__(self, cfg, logger, data, repr, loss, renderer, paramOptim, structOptim,
-                 result_path, ckpt_path, networkGui):
+                 result_path, ckpt_path, networkGui, first_iteration = 1):
         super().__init__(cfg, logger)
         self.data = data
         self.repr = repr
@@ -17,8 +17,9 @@ class BaseTrainer(BaseModule):
         self.result_path = Path(result_path)
         self.ckpt_path = Path(ckpt_path)
         self.networkGui = networkGui
-
-        self.progress_bar = ProgressBar(self.iterations + 1)
+        self.first_iteration = first_iteration
+        self.progress_bar = ProgressBar(first_iter = self.first_iteration,
+                                        total_iters = self.iterations)
 
     def init_save_results(self):
         # Save point cloud data
@@ -58,8 +59,7 @@ class BaseTrainer(BaseModule):
         ema_loss_for_log = 0.0
         viewpoint_stack = None
         is_white_background = self.renderer.background_color == [255,255,255]
-        for iteration in range(1, self.iterations+1):
-               
+        for iteration in range(self.first_iteration, self.iterations + 1):
             self.networkGui.process_iter(self.renderer, self.repr, self.data, iteration, self.iterations)
             self.paramOptim.update_lr(iteration)
             # Every 1000 its we increase the levels of SH up to a maximum degree
@@ -85,7 +85,6 @@ class BaseTrainer(BaseModule):
                 ema_loss_for_log = 0.4 * loss.item() + 0.6 * ema_loss_for_log
                 self.progress_bar.update(iteration, Loss=ema_loss_for_log)
 
-
                 # Log and save
                 if iteration in self.save_iterations:
                     self.save_scene(iteration)
@@ -101,8 +100,7 @@ class BaseTrainer(BaseModule):
 
                 # Checkpoint saving step
                 if iteration in self.ckpt_iterations:
-                    pass
-                    # self.save_ckpt(iteration)
+                    self.save_ckpt(iteration)
 
     def save_scene(self, iteration):
         self.logger.info(f"Saving Gaussians in ITER {iteration}")
@@ -110,7 +108,10 @@ class BaseTrainer(BaseModule):
         ply_path.parent.mkdir(parents=True, exist_ok=True)
         self.repr.save_ply(ply_path)
 
-    
+    def save_ckpt(self, iteration):
+        self.logger.info(f"Saving Checkpoint in ITER {iteration}")
+        filepath = self.ckpt_path / f"{iteration}.pth"
+        torch.save(self.state, str(filepath))
 
 
 

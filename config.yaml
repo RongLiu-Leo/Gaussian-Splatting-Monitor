@@ -52,7 +52,7 @@ renderer:
 
 checkpoint:
   use: False
-  path: "./output/lego_30000.pth"
+  path: "./output/lego@20240322-205727/ckpts/7000.pth"
 
 networkGui:
   use: False

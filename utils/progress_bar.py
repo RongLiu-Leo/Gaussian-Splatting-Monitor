@@ -3,7 +3,7 @@ from tqdm import tqdm
 class ProgressBar:
     def __init__(self, total_iters, first_iter = 1):
         self.total_iters = total_iters
-        self.bar = tqdm(range(first_iter, total_iters), desc="Training progress")
+        self.bar = tqdm(range(total_iters), initial=first_iter, total=total_iters, desc="Training progress",)
 
     def update(self,iteration,**kwargs):
         if iteration % 10 == 0:
