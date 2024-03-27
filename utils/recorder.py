@@ -17,7 +17,7 @@ class Recorder(BaseModule):
             self.record_path[name] = info_path / name
             self.record_path[name].mkdir(parents=True, exist_ok=True)
             self.data[name] = []
-            
+
             # value type
             value_type = record_item.get("value_type")
             self.value_type[name] = value_type

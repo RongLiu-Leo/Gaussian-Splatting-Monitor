@@ -46,7 +46,6 @@ class GaussianRepr(BaseModule):
     def opacity(self):
         return self.opacity_activation(self._opacity)
     
-    @property
     def covariance(self, scaling_modifier = 1):
         return self.covariance_activation(self.scaling, self._rotation, scaling_modifier)
 

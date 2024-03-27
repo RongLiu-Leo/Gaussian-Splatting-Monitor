@@ -44,8 +44,8 @@ class DiffRasterizerRenderer(BaseModule):
             projmatrix=camera.full_proj_transform,
             sh_degree=repr.sh_degree,
             campos=camera.camera_center,
-            prefiltered=self.prefiltered,
-            debug=self.debug
+            prefiltered=False,
+            debug=False
         )
 
         rasterizer = GaussianRasterizer(raster_settings=raster_settings)
@@ -58,28 +58,17 @@ class DiffRasterizerRenderer(BaseModule):
         # scaling / rotation by the rasterizer.
         scales = None
         rotations = None
-        cov3D_precomp = None
-        if self.compute_cov3D_python:
-            cov3D_precomp = repr.covariance(self.scaling_modifier)
-        else:
-            scales = repr.scaling
-            rotations = repr.rotation
+        cov3D_precomp = repr.covariance(self.scaling_modifier)
+
 
         # If precomputed colors are provided, use them. Otherwise, if it is desired to precompute colors
         # from SHs in Python, do it. If not, then SH -> RGB conversion will be done by rasterizer.
         shs = None
-        colors_precomp = None
-        if self.override_color == [-1,-1,-1]:
-            if self.convert_SHs_python:
-                shs_view = repr.features.transpose(1, 2).view(-1, 3, (repr.max_sh_degree+1)**2)
-                dir_pp = (repr.xyz - camera.camera_center.repeat(repr.features.shape[0], 1))
-                dir_pp_normalized = dir_pp/dir_pp.norm(dim=1, keepdim=True)
-                sh2rgb = eval_sh(repr.sh_degree, shs_view, dir_pp_normalized)
-                colors_precomp = torch.clamp_min(sh2rgb + 0.5, 0.0)
-            else:
-                shs = repr.features
-        else:
-            colors_precomp = self.override_color
+        shs_view = repr.features.transpose(1, 2).view(-1, 3, (repr.max_sh_degree+1)**2)
+        dir_pp = (repr.xyz - camera.camera_center.repeat(repr.features.shape[0], 1))
+        dir_pp_normalized = dir_pp/dir_pp.norm(dim=1, keepdim=True)
+        sh2rgb = eval_sh(repr.sh_degree, shs_view, dir_pp_normalized)
+        colors_precomp = torch.clamp_min(sh2rgb + 0.5, 0.0)
 
         # Rasterize visible Gaussians to image, obtain their radii (on screen). 
         rendered_image, rendered_depth, rendered_median_depth, rendered_alpha, radii = rasterizer(

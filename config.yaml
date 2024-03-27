@@ -43,12 +43,7 @@ loss:
 
 renderer:
   background_color: [0,0,0]
-  compute_cov3D_python: False
-  convert_SHs_python: False
   scaling_modifier: 1.0
-  prefiltered: False
-  override_color: [-1,-1,-1]
-  debug: False
 
 recorder:
   - name: "ema_loss_for_log"
@@ -70,6 +65,11 @@ networkGui:
   host: "127.0.0.1"
   port: 6009
   render_modes : ['RGB', 'Alpha', 'Depth', 'Normal', 'Curvature', 'Edge']
+
+render_settings:
+  model_path: "./output/lego@20240322-205727/results/point_cloud/iteration_30000/point_cloud.ply"
+  save_path: "./output/render"
+  render_modes: ['rgb','alpha']
 
 logger:
   version: 1
