@@ -1,4 +1,4 @@
-from model.base import BaseModule
+from utils import *
 from dataloader.colmap_helper import load_colmap_folder, get_spatial_scale
 import random
 

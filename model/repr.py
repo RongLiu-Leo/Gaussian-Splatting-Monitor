@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from torch import nn
-from model.base import BaseModule
+from utils.base import BaseModule
 from simple_knn._C import distCUDA2
 from plyfile import PlyData, PlyElement
 from utils import RGB2SH, BasicPointCloud, inverse_sigmoid, build_covariance_from_scaling_rotation

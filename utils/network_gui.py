@@ -3,7 +3,7 @@ import json
 import struct
 import torch
 import traceback
-from model.base import BaseModule
+from utils.base import BaseModule
 from utils import BasicCamera
 
 class NetworkGUI(BaseModule):

@@ -1,7 +1,7 @@
 import math
 import torch
 from utils import eval_sh,depth_to_normal,gradient_map,colormap
-from model.base import BaseModule
+from utils.base import BaseModule
 from diff_gaussian_rasterization import GaussianRasterizationSettings, GaussianRasterizer
 
 class DiffRasterizerRenderer(BaseModule):

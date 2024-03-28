@@ -1,6 +1,6 @@
 import torch
 from random import randint
-from model.base import BaseModule
+from utils.base import BaseModule
 from pathlib import Path
 import json
 from utils import ProgressBar

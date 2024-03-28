@@ -2,7 +2,7 @@ import torch
 from pathlib import Path
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
-from model.base import BaseModule
+from utils.base import BaseModule
 
 class Recorder(BaseModule):
     def __init__(self, cfg, logger, info_path, first_iter, max_iter):

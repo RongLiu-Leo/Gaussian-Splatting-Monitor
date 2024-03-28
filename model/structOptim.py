@@ -1,5 +1,5 @@
 import torch
-from model.base import BaseModule
+from utils.base import BaseModule
 from utils import build_rotation, inverse_sigmoid
 
 class SplitWithCloneWithPrune(BaseModule):

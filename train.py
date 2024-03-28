@@ -41,8 +41,7 @@ def main(cfg):
     cp_config.write_text(yaml.dump(cfg))
 
     # init logger
-    setup_logging(cfg.get('logger'), info_path)
-    logger = init_logger(name)
+    logger = init_logger(name, info_path)
 
     # check if continue training from a checkpoint
     use_checkpoint = cfg.get('checkpoint').get('use')

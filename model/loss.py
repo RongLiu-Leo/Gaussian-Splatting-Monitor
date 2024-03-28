@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-from model.base import BaseModule
+from utils.base import BaseModule
 from math import exp
 
 class L1WithSSIMLoss(nn.Module, BaseModule):

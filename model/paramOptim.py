@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 import torch.nn as nn
-from model.base import BaseModule
+from utils.base import BaseModule
 
 
 def get_expon_lr_func(
