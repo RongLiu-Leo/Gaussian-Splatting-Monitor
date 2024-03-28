@@ -6,6 +6,7 @@ class ConfigLoader:
     def __init__(self, yaml_file_path=None):
         if yaml_file_path:
             self.cfg = self.load_yaml(yaml_file_path)
+            self.cfg['config_path'] = yaml_file_path
         else:
             self.cfg = {}
 
@@ -31,7 +32,7 @@ class ConfigLoader:
         parser.add_argument('updates', nargs='*', help='Updates in the format key.path=value')
         args = parser.parse_args()
 
-        if args.config:
+        if args.config and self.cfg == {}:
             self.cfg = self.load_yaml(args.config)
             self.cfg['config_path'] = args.config
 
