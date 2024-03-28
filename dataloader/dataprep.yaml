@@ -1,0 +1,9 @@
+ColmapConverter:
+  no_gpu: false
+  skip_matching: false
+  source_path: "D:\\data\\carla\\processed\\Sky_test2" # "/mnt/d/data/carla/processed/Sky_test2" # 
+  camera: OPENCV
+  colmap_executable: "D:\\code\\COLMAP-3.9.1-windows-cuda\\colmap.bat" #
+  resize: false
+  magick_executable: ""
+  map_ba_global_function_tolerance: 1e-06
