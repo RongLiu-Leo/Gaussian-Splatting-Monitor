@@ -9,6 +9,12 @@ class ColmapProcessor(BaseModule):
         self.magick_command = '"{}"'.format(self.magick_executable) if len(self.magick_executable) > 0 else "magick"
         self.use_gpu = 1 if not self.no_gpu else 0
     
+    def should_skip(self):
+        cameras_file = Path(self.source_path) / "sparse" / "0" / "cameras.bin"
+        images_file = Path(self.source_path) / "sparse" / "0" / "images.bin"
+        points3D_file = Path(self.source_path) / "sparse" / "0" / "points3D.bin"
+        return cameras_file.exists() and images_file.exists() and points3D_file.exists()
+    
     def run(self):
         if not self.skip_matching:
             Path(self.source_path, "distorted", "sparse").mkdir(parents=True, exist_ok=True)

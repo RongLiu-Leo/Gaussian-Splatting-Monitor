@@ -7,4 +7,7 @@ if __name__ == "__main__":
     print(config_loader.cfg)
     logger = init_logger('ColmapConverter', cfg.get('source_path'))
     p = ColmapProcessor(cfg, logger)
-    p.run()
+    if p.should_skip():
+        logger.info("Already processed, skipping...")
+    else:
+        p.run()
