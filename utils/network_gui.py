@@ -7,7 +7,7 @@ from utils.base import BaseModule
 from utils import BasicCamera
 
 class NetworkGUI(BaseModule):
-    def __init__(self, cfg, logger):
+    def __init__(self, cfg, logger=None):
         super().__init__(cfg, logger)
         if self.use:
             self.listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -34,7 +34,24 @@ class NetworkGUI(BaseModule):
                 except Exception as e:
                     # raise e
                     self.conn = None
-
+    def process(self, renderer, repr, data):
+        if self.use:
+            if self.conn == None:
+                self.try_connect()
+            while self.conn != None:
+                try:
+                    net_image_bytes = None
+                    custom_cam, do_training, _, _, keep_alive, _, render_mode_id = self.receive()
+                    if custom_cam != None:
+                        render_mode = self.render_modes[render_mode_id].lower()
+                        net_image = renderer.render_img(repr = repr, camera = custom_cam, render_mode = render_mode)
+                        net_image_bytes = memoryview((torch.clamp(net_image, min=0, max=1.0) * 255).byte().permute(1, 2, 0).contiguous().cpu().numpy())
+                    self.send(net_image_bytes, data.source_path)
+                    if not keep_alive:
+                        break
+                except Exception as e:
+                    # raise e
+                    self.conn = None
     def try_connect(self):
         try:
             self.conn, self.addr = self.listener.accept()

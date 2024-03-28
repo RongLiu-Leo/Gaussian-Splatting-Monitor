@@ -13,9 +13,11 @@ import yaml
 import argparse
 from dataloader import ColmapData
 from model import GaussianRepr, DiffRasterizerRenderer
-from utils import init_logger
+from utils import init_logger, NetworkGUI
 from pathlib import Path
-from PIL import Image
+import torch
+import subprocess
+
 def main(config_path):
 
     # parse cfg
@@ -23,11 +25,11 @@ def main(config_path):
         cfg = yaml.safe_load(file)
 
     name = cfg.get("name")
+
     render_settings = cfg.get("render_settings")
     save_path = Path(render_settings.get("save_path"))
     save_path.mkdir(parents=True, exist_ok=True)
     model_path = Path(render_settings.get("model_path"))
-    render_modes = render_settings.get("render_modes")
 
     # init logger
     logger = init_logger(name, save_path)
@@ -36,25 +38,25 @@ def main(config_path):
     repr = GaussianRepr(cfg = cfg.get('repr'), logger = logger)
     repr.load_ply(model_path)
 
+    # init network gui
+    networkGui = NetworkGUI(cfg = cfg.get('networkGui'), logger = logger)
+
     # init renderer
     renderer = DiffRasterizerRenderer(cfg = cfg.get('renderer'), logger = logger)
     
     # init camera data(use exist camera as example)
     data = ColmapData(cfg = cfg.get('data'), logger = logger)
-    cameras = [pair.camera for pair in data.get_train_pair_list()][:10]
 
-    # render!
-    for cam_idx, camera in enumerate(cameras):
-        for render_mode in render_modes:
-            img = renderer.render_img(repr = repr, camera = camera, render_mode = render_mode)
-            img_path = save_path /f"{cam_idx}_{render_mode}.png"
-            img = img.detach().cpu().numpy()  # Convert tensor to numpy array
-            img = (img * 255).clip(0, 255).astype('uint8')
-            image = Image.fromarray(img.transpose(1, 2, 0))
-            image.save(img_path)  # Save the image
+    # view!
+    while True:
+        with torch.no_grad():
+            networkGui.process(renderer, repr, data)
 
 if __name__ == "__main__":
-    # Set up command line argument parser
+    try:
+        subprocess.Popen("./SIBR_viewers/install/bin/SIBR_remoteGaussian_app_rwdi.exe")
+    except FileNotFoundError:
+        print("SIBR viewer not found. Please install it through the SIBR_viewers repository.")
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", default="config.yaml", help="Path to config file")
     args = parser.parse_args()
