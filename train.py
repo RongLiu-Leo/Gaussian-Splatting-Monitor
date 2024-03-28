@@ -7,8 +7,7 @@ from model import (
     SplitWithCloneWithPrune,
     BaseTrainer)
 import time
-import yaml
-import argparse
+
 from pathlib import Path
 from utils import *
 import random
@@ -21,11 +20,7 @@ def init_settings(seed):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-def main(config_path):    
-
-    # init config
-    with open(config_path, 'r') as file:
-        cfg = yaml.safe_load(file)
+def main(cfg):    
 
     # init folder paths
     name = cfg.get('name')
@@ -42,7 +37,7 @@ def main(config_path):
     # init settings
     seed = cfg.get('seed')
     init_settings(seed)
-    cp_config = info_path / Path(config_path).name
+    cp_config = info_path / Path(cfg.get("config_path")).name
     cp_config.write_text(yaml.dump(cfg))
 
     # init logger
@@ -113,10 +108,7 @@ def main(config_path):
     # train!
     trainer.train()
     
-    
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--config", default="config.yaml", help="Path to config file")
-    args = parser.parse_args()
-    main(args.config)
+    config_loader = ConfigLoader()
+    config_loader.parse_args()
+    main(config_loader.cfg)
