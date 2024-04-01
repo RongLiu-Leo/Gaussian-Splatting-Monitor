@@ -99,7 +99,7 @@ void resetScene(RemoteAppArgs myArgs,
 	// Top view
 	topView.reset(new sibr::SceneDebugView(scene, generalCamera, myArgs));
 	multiViewManager.addSubView("Top view", topView, usedResolution);
-	topView->active(false);
+	topView->active(true);
 
 	multiViewManager.addIBRSubView("Point view", pointBasedView, { sceneResWidth, sceneResHeight }, ImGuiWindowFlags_NoBringToFrontOnFocus);
 	multiViewManager.addCameraForView("Point view", generalCamera);

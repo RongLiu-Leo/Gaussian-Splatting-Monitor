@@ -39,7 +39,7 @@ namespace sibr
         } else {
             _flags = 0;
         }
-        _hidden = false;
+        _hidden = true;
         _name = "Performance Metrics##" + std::to_string(_count);
         ++_count;
     }
