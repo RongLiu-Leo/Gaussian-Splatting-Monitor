@@ -216,18 +216,30 @@ void sibr::RemotePointView::onGUI()
 	const std::string guiName = "Remote Viewer Settings (" + name() + ")";
 	if (ImGui::Begin(guiName.c_str())) 
 	{
-		std::vector<const char*> items;
-		for (const auto& item : _renderItems) {
-			items.push_back(item.c_str());
-		}
-        ImGui::Combo("Render Mode", &_item_current, items.data(), static_cast<int>(items.size()));
+		ImGui::Text("Run/Pause");
+		ImGui::Dummy(ImVec2(0.0f, 5.0f));
+		ImGui::Checkbox("Train", &_doTrainingBool);
+		ImGui::Dummy(ImVec2(0.0f, 10.0f));
+		ImGui::Text("Render Mode");
+		ImGui::Dummy(ImVec2(0.0f, 5.0f));
+        // Render mode radio buttons
+        for (int i = 0; i < _renderItems.size(); ++i) {
+            ImGui::RadioButton(_renderItems[i].c_str(), &_item_current, i);
+        }
+		ImGui::Dummy(ImVec2(0.0f, 10.0f));
+		ImGui::Text("Visualization & Processing Controls");
+		ImGui::Dummy(ImVec2(0.0f, 5.0f));
 		ImGui::Checkbox("Show Input Points", &_showSfM);
 		ImGui::Checkbox("Show Input Points during Motion", &_renderSfMInMotion);
-		ImGui::Checkbox("Train", &_doTrainingBool);
 		ImGui::Checkbox("SHs Python", &_doSHsPython);
 		ImGui::Checkbox("Rot-Scale Python", &_doRotScalePython);
 		ImGui::Checkbox("Keep model alive (after training)", &_keepAlive);
-		ImGui::SliderFloat("Scaling Modifier", &_scalingModifier, 0.001f, 1.0f);
+		ImGui::Dummy(ImVec2(0.0f, 10.0f));
+		ImGui::Text("Scaling Modifier");
+		ImGui::Dummy(ImVec2(0.0f, 5.0f));
+		ImGui::PushItemWidth(250.0f);
+		ImGui::SliderFloat("##Scaling Modifier", &_scalingModifier, 0.001f, 1.0f);
+		ImGui::PopItemWidth(); 
 	}
 	ImGui::End();
 }
