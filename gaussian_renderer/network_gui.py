@@ -70,7 +70,6 @@ def send(message_bytes, verify, metrics):
 
 def receive():
     message = read()
-
     width = message["resolution_x"]
     height = message["resolution_y"]
 
@@ -81,8 +80,6 @@ def receive():
             fovx = message["fov_x"]
             znear = message["z_near"]
             zfar = message["z_far"]
-            do_shs_python = bool(message["shs_python"])
-            do_rot_scale_python = bool(message["rot_scale_python"])
             keep_alive = bool(message["keep_alive"])
             scaling_modifier = message["scaling_modifier"]
             world_view_transform = torch.reshape(torch.tensor(message["view_matrix"]), (4, 4)).cuda()
@@ -96,6 +93,6 @@ def receive():
             print("")
             traceback.print_exc()
             # raise e
-        return custom_cam, do_training, do_shs_python, do_rot_scale_python, keep_alive, scaling_modifier, render_mode
+        return custom_cam, do_training, keep_alive, scaling_modifier, render_mode
     else:
-        return None, None, None, None, None, None, None
+        return None, None, None, None, None

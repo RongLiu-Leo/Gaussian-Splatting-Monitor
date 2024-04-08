@@ -88,8 +88,6 @@ namespace sibr {
 		RemoteRenderInfo _remoteInfo;
 
 		bool _doTrainingBool = true;
-		bool _doSHsPython = false;
-		bool _doRotScalePython = false;
 		bool _keepAlive = true;
 		bool _showSfM = false;
 		int _item_current = 0;
@@ -105,8 +103,6 @@ namespace sibr {
 		void send_receive();
 
 		GLuint _imageTexture;
-
-		bool _renderSfMInMotion = false;
 
 		bool _imageResize = true;
 		bool _imageDirty = true;

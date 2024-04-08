@@ -24,8 +24,6 @@ constexpr char* jTrain = "train";
 constexpr char* jViewMat = "view_matrix";
 constexpr char* jViewProjMat = "view_projection_matrix";
 constexpr char* jScalingModifier = "scaling_modifier";
-constexpr char* jSHsPython = "shs_python";
-constexpr char* jRotScalePython = "rot_scale_python";
 constexpr char* jKeepAlive = "keep_alive";
 constexpr char* jRender = "render_mode";
 
@@ -82,8 +80,6 @@ void sibr::RemotePointView::send_receive()
 					// Serialize our arbitrary data to something simple, yet convenient for both sides
 					json sendData;
 					sendData[jTrain] = _doTrainingBool ? 1 : 0;
-					sendData[jSHsPython] = _doSHsPython ? 1 : 0;
-					sendData[jRotScalePython] = _doRotScalePython ? 1 : 0;
 					sendData[jScalingModifier] = _scalingModifier;
 					sendData[jResX] = _remoteInfo.imgResolution.x();
 					sendData[jResY] = _remoteInfo.imgResolution.y();
@@ -120,7 +116,7 @@ void sibr::RemotePointView::send_receive()
 				boost::asio::read(sock, boost::asio::buffer(sceneName.data(), sceneLength));
 				sceneName.push_back(0);
 				current_scene = std::string(sceneName.data());
-				
+
 				uint32_t data_length;
 				boost::system::error_code ec;
 				// Read the length of the serialized data
@@ -185,7 +181,6 @@ void sibr::RemotePointView::onRenderIBR(sibr::IRenderTarget & dst, const sibr::C
 	if (!_scene)
 		return;
 
-	bool preview = false;
 	{
 		std::lock_guard<std::mutex> lg(_renderDataMutex);
 		if (eye.view() != _remoteInfo.view || eye.viewproj() != _remoteInfo.viewProj)
@@ -204,10 +199,9 @@ void sibr::RemotePointView::onRenderIBR(sibr::IRenderTarget & dst, const sibr::C
 			_imageResize = true;
 			_timestampRequested++;
 		}
-		preview = _timestampReceived != _timestampRequested;
 	}
 
-	if (_showSfM || _timestampReceived == 0 || (preview && _renderSfMInMotion))
+	if (_showSfM || _timestampReceived == 0)
 	{
 		_pointbasedrenderer->process(_scene->proxies()->proxy(), eye, dst);
 	}
@@ -243,10 +237,7 @@ void sibr::RemotePointView::onGUI()
 		}
         ImGui::Combo("Render Mode", &_item_current, items.data(), static_cast<int>(items.size()));
 		ImGui::Checkbox("Show Input Points", &_showSfM);
-		ImGui::Checkbox("Show Input Points during Motion", &_renderSfMInMotion);
 		ImGui::Checkbox("Train", &_doTrainingBool);
-		ImGui::Checkbox("SHs Python", &_doSHsPython);
-		ImGui::Checkbox("Rot-Scale Python", &_doRotScalePython);
 		ImGui::Checkbox("Keep model alive (after training)", &_keepAlive);
 		ImGui::SliderFloat("Scaling Modifier", &_scalingModifier, 0.001f, 1.0f);
 	}
