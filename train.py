@@ -129,8 +129,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                     net_image_bytes = memoryview((torch.clamp(net_image, min=0, max=1.0) * 255).byte().permute(1, 2, 0).contiguous().cpu().numpy())
 
                 metrics_dict = {
-                    "loss": ema_loss_for_log,
-                    "#": gaussians.get_opacity.shape[0]
+                    "#": gaussians.get_opacity.shape[0],
+                    "loss": ema_loss_for_log
                     # Add more metrics as needed
                 }
                 # Send the data
