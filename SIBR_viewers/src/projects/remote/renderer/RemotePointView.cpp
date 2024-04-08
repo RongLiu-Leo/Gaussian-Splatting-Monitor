@@ -120,6 +120,27 @@ void sibr::RemotePointView::send_receive()
 				boost::asio::read(sock, boost::asio::buffer(sceneName.data(), sceneLength));
 				sceneName.push_back(0);
 				current_scene = std::string(sceneName.data());
+				
+				uint32_t data_length;
+				boost::system::error_code ec;
+				// Read the length of the serialized data
+				boost::asio::read(sock, boost::asio::buffer(&data_length, sizeof(data_length)), ec);
+				if (ec) {
+					throw boost::system::system_error(ec); // Or handle error as appropriate
+				}
+				// Read the serialized data
+				std::vector<char> serialized_data(data_length);
+				boost::asio::read(sock, boost::asio::buffer(serialized_data), ec);
+				if (ec) {
+					throw boost::system::system_error(ec); // Or handle error as appropriate
+				}
+				// Deserialize the data to get the dictionary
+				json deserialized_data = json::parse(serialized_data.begin(), serialized_data.end());
+				std::map<std::string, double> metrics_dict = deserialized_data.get<std::map<std::string, double>>();
+				// Now you can do operations with metrics_dict
+				for (const auto& pair : metrics_dict) {
+					std::cout << pair.first << ": " << pair.second << std::endl; // Example operation
+				}
 			}
 		}
 		catch (...)

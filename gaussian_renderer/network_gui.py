@@ -32,9 +32,9 @@ def init(wish_host, wish_port):
     listener.listen()
     listener.settimeout(0)
 
-def send_render_items(conn, string_list):
+def send_json_data(conn, data):
     # Serialize the list of strings to JSON
-    serialized_data = json.dumps(string_list)
+    serialized_data = json.dumps(data)
     # Convert the serialized data to bytes
     bytes_data = serialized_data.encode('utf-8')
     # Send the length of the serialized data first
@@ -48,7 +48,7 @@ def try_connect(render_items):
         conn, addr = listener.accept()
         print(f"\nConnected by {addr}")
         conn.settimeout(None)
-        send_render_items(conn, render_items)
+        send_json_data(conn, render_items)
     except Exception as inst:
         pass
         # raise inst
@@ -60,12 +60,13 @@ def read():
     message = conn.recv(messageLength)
     return json.loads(message.decode("utf-8"))
 
-def send(message_bytes, verify):
+def send(message_bytes, verify, metrics):
     global conn
     if message_bytes != None:
         conn.sendall(message_bytes)
     conn.sendall(len(verify).to_bytes(4, 'little'))
     conn.sendall(bytes(verify, 'ascii'))
+    send_json_data(conn, metrics)
 
 def receive():
     message = read()
