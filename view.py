@@ -8,36 +8,35 @@ import torch
 import subprocess
 
 
-def view(dataset, pipe, iteration, render_items):
+def view(dataset, pipe, iteration):
     gaussians = GaussianModel(dataset.sh_degree)
     scene = Scene(dataset, gaussians, load_iteration=iteration, shuffle=False)
     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
     background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
 
-    with torch.no_grad():
-        if network_gui.conn == None:
-            network_gui.try_connect(render_items)
+    while True:
+        with torch.no_grad():
+            if network_gui.conn == None:
+                network_gui.try_connect(dataset.render_items)
             while network_gui.conn != None:
                 try:
                     net_image_bytes = None
-                    custom_cam, do_training, pipe.convert_SHs_python, pipe.compute_cov3D_python, keep_alive, scaling_modifer, render_mode = network_gui.receive()
+                    custom_cam, do_training, keep_alive, scaling_modifer, render_mode = network_gui.receive()
                     if custom_cam != None:
                         render_pkg = render(custom_cam, gaussians, pipe, background, scaling_modifer)
-                        net_image = render_net_image(render_pkg, render_items, render_mode, custom_cam)
+                        net_image = render_net_image(render_pkg, dataset.render_items, render_mode, custom_cam)
                         net_image_bytes = memoryview((torch.clamp(net_image, min=0, max=1.0) * 255).byte().permute(1, 2, 0).contiguous().cpu().numpy())
-                    network_gui.send(net_image_bytes, dataset.source_path)
-                    if not keep_alive:
-                        break
+                    metrics_dict = {
+                        "#": gaussians.get_opacity.shape[0]
+                        # Add more metrics as needed
+                    }
+                    network_gui.send(net_image_bytes, dataset.source_path, metrics_dict)
                 except Exception as e:
-                    # raise e
-                    network_gui.conn = None
- 
+                    raise e
+                    print('Viewer closed')
+                    exit(0)
 
 if __name__ == "__main__":
-    try:
-        subprocess.Popen("./SIBR_viewers/install/bin/SIBR_remoteGaussian_app_rwdi.exe")
-    except FileNotFoundError:
-        print("SIBR viewer not found. Please install it through the SIBR_viewers repository.")
 
     # Set up command line argument parser
     parser = ArgumentParser(description="Exporting script parameters")
@@ -49,7 +48,7 @@ if __name__ == "__main__":
     args = parser.parse_args(sys.argv[1:])
     print("View: " + args.model_path)
     network_gui.init(args.ip, args.port)
-    render_items = ['RGB', 'Alpha', 'Depth', 'Normal', 'Curvature', 'Edge']
-    view(lp.extract(args), pp.extract(args), args.iteration, render_items)
+    
+    view(lp.extract(args), pp.extract(args), args.iteration)
 
     print("\nViewing complete.")

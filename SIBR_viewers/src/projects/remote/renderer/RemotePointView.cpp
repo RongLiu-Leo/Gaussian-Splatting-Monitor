@@ -24,8 +24,6 @@ constexpr char* jTrain = "train";
 constexpr char* jViewMat = "view_matrix";
 constexpr char* jViewProjMat = "view_projection_matrix";
 constexpr char* jScalingModifier = "scaling_modifier";
-constexpr char* jSHsPython = "shs_python";
-constexpr char* jRotScalePython = "rot_scale_python";
 constexpr char* jKeepAlive = "keep_alive";
 constexpr char* jRender = "render_mode";
 
@@ -82,8 +80,6 @@ void sibr::RemotePointView::send_receive()
 					// Serialize our arbitrary data to something simple, yet convenient for both sides
 					json sendData;
 					sendData[jTrain] = _doTrainingBool ? 1 : 0;
-					sendData[jSHsPython] = _doSHsPython ? 1 : 0;
-					sendData[jRotScalePython] = _doRotScalePython ? 1 : 0;
 					sendData[jScalingModifier] = _scalingModifier;
 					sendData[jResX] = _remoteInfo.imgResolution.x();
 					sendData[jResY] = _remoteInfo.imgResolution.y();
@@ -120,6 +116,27 @@ void sibr::RemotePointView::send_receive()
 				boost::asio::read(sock, boost::asio::buffer(sceneName.data(), sceneLength));
 				sceneName.push_back(0);
 				current_scene = std::string(sceneName.data());
+
+				uint32_t data_length;
+				boost::system::error_code ec;
+				// Read the length of the serialized data
+				boost::asio::read(sock, boost::asio::buffer(&data_length, sizeof(data_length)), ec);
+				if (ec) {
+					throw boost::system::system_error(ec); // Or handle error as appropriate
+				}
+				// Read the serialized data
+				std::vector<char> serialized_data(data_length);
+				boost::asio::read(sock, boost::asio::buffer(serialized_data), ec);
+				if (ec) {
+					throw boost::system::system_error(ec); // Or handle error as appropriate
+				}
+				// Deserialize the data to get the dictionary
+				json deserialized_data = json::parse(serialized_data.begin(), serialized_data.end());
+				std::map<std::string, double> metrics_dict = deserialized_data.get<std::map<std::string, double>>();
+				// Now you can do operations with metrics_dict
+				for (const auto& pair : metrics_dict) {
+					std::cout << pair.first << ": " << pair.second << std::endl; // Example operation
+				}
 			}
 		}
 		catch (...)
@@ -164,7 +181,6 @@ void sibr::RemotePointView::onRenderIBR(sibr::IRenderTarget & dst, const sibr::C
 	if (!_scene)
 		return;
 
-	bool preview = false;
 	{
 		std::lock_guard<std::mutex> lg(_renderDataMutex);
 		if (eye.view() != _remoteInfo.view || eye.viewproj() != _remoteInfo.viewProj)
@@ -183,10 +199,9 @@ void sibr::RemotePointView::onRenderIBR(sibr::IRenderTarget & dst, const sibr::C
 			_imageResize = true;
 			_timestampRequested++;
 		}
-		preview = _timestampReceived != _timestampRequested;
 	}
 
-	if (_showSfM || _timestampReceived == 0 || (preview && _renderSfMInMotion))
+	if (_showSfM || _timestampReceived == 0)
 	{
 		_pointbasedrenderer->process(_scene->proxies()->proxy(), eye, dst);
 	}
@@ -230,9 +245,6 @@ void sibr::RemotePointView::onGUI()
 		ImGui::Text("Visualization & Processing Controls");
 		ImGui::Dummy(ImVec2(0.0f, 5.0f));
 		ImGui::Checkbox("Show Input Points", &_showSfM);
-		ImGui::Checkbox("Show Input Points during Motion", &_renderSfMInMotion);
-		ImGui::Checkbox("SHs Python", &_doSHsPython);
-		ImGui::Checkbox("Rot-Scale Python", &_doRotScalePython);
 		ImGui::Checkbox("Keep model alive (after training)", &_keepAlive);
 		ImGui::Dummy(ImVec2(0.0f, 10.0f));
 		ImGui::Text("Scaling Modifier");
