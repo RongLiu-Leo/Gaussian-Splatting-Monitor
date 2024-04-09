@@ -27,6 +27,9 @@ constexpr char* jScalingModifier = "scaling_modifier";
 constexpr char* jKeepAlive = "keep_alive";
 constexpr char* jRender = "render_mode";
 
+std::map<std::string, double> globalMetricsDict;
+
+
 void sibr::RemotePointView::set_render_items(boost::asio::ip::tcp::socket& sock) {
 			uint32_t data_length;
 			boost::system::error_code ec;
@@ -44,6 +47,9 @@ void sibr::RemotePointView::set_render_items(boost::asio::ip::tcp::socket& sock)
 			// Deserialize the data to get the list of strings
 			json deserialized_data = json::parse(serialized_data.begin(), serialized_data.end());
 			std::vector<std::string> string_list = deserialized_data.get<std::vector<std::string>>();
+
+			//  include an additional item in _renderItems vector that corresponds to the "Show Input Points" option
+			string_list.push_back("Show Input Points");
 			// Now you can do operations with string_list
 			for (const auto& str : string_list) {
 				std::cout << str << std::endl; // Example operation
@@ -90,7 +96,7 @@ void sibr::RemotePointView::send_receive()
 					sendData[jKeepAlive] = _keepAlive ? 1 : 0;
 					sendData[jViewMat] = std::vector<float>((float*)&_remoteInfo.view, ((float*)&_remoteInfo.view) + 16);
 					sendData[jViewProjMat] = std::vector<float>((float*)&_remoteInfo.viewProj, ((float*)&_remoteInfo.viewProj) + 16);
-					sendData[jRender] = _item_current;
+					sendData[jRender] = (_item_current == 6) ? 0 : _item_current;
 
 					std::string message = sendData.dump();
 					uint32_t messageLength = message.size();
@@ -132,11 +138,11 @@ void sibr::RemotePointView::send_receive()
 				}
 				// Deserialize the data to get the dictionary
 				json deserialized_data = json::parse(serialized_data.begin(), serialized_data.end());
-				std::map<std::string, double> metrics_dict = deserialized_data.get<std::map<std::string, double>>();
+				globalMetricsDict = deserialized_data.get<std::map<std::string, double>>();
 				// Now you can do operations with metrics_dict
-				for (const auto& pair : metrics_dict) {
-					std::cout << pair.first << ": " << pair.second << std::endl; // Example operation
-				}
+				// for (const auto& pair : globalMetricsDict) {
+				// 	std::cout << pair.first << ": " << pair.second << std::endl; // Example operation
+				// }
 			}
 		}
 		catch (...)
@@ -239,12 +245,14 @@ void sibr::RemotePointView::onGUI()
 		ImGui::Dummy(ImVec2(0.0f, 5.0f));
         // Render mode radio buttons
         for (int i = 0; i < _renderItems.size(); ++i) {
-            ImGui::RadioButton(_renderItems[i].c_str(), &_item_current, i);
-        }
+			if (ImGui::RadioButton(_renderItems[i].c_str(), &_item_current, i)) {
+				// When the "Show Input Points" option is selected, set _showSfM accordingly
+				_showSfM = (_renderItems[i] == "Show Input Points");
+			}
+		}
 		ImGui::Dummy(ImVec2(0.0f, 10.0f));
 		ImGui::Text("Visualization & Processing Controls");
 		ImGui::Dummy(ImVec2(0.0f, 5.0f));
-		ImGui::Checkbox("Show Input Points", &_showSfM);
 		ImGui::Checkbox("Keep model alive (after training)", &_keepAlive);
 		ImGui::Dummy(ImVec2(0.0f, 10.0f));
 		ImGui::Text("Scaling Modifier");
@@ -252,6 +260,12 @@ void sibr::RemotePointView::onGUI()
 		ImGui::PushItemWidth(250.0f);
 		ImGui::SliderFloat("##Scaling Modifier", &_scalingModifier, 0.001f, 1.0f);
 		ImGui::PopItemWidth(); 
+
+		ImGui::Dummy(ImVec2(0.0f, 10.0f));
+        ImGui::Text("Live Performance Metrics");
+        for (const auto& pair : globalMetricsDict) {
+            ImGui::Text("%s: %.3f", pair.first.c_str(), pair.second);
+        }
 	}
 	ImGui::End();
 }
