@@ -85,4 +85,4 @@ This repository owes its foundation to the [original GS repository](https://gith
 
 ## Star
 
-If you use this repository for your research, please consider giveing us star.
+If you use this repository for your research, please consider giving us a star.
