@@ -15,6 +15,7 @@ Inspired by these advancements, this codebase supports additional differentiable
 The repository supports
 - [AtomGS: Atomizing Gaussian Splatting for High-Fidelity Radiance Field](https://rongliu-leo.github.io/AtomGS/)
 - [2D Gaussian Splatting for Geometrically Accurate Radiance Fields](https://github.com/hbb1/2d-gaussian-splatting)
+- [Feature 3DGS 🪄: Supercharging 3D Gaussian Splatting to Enable Distilled Feature Fields](https://github.com/ShijieZhou-UCLA/feature-3dgs)
 
 ## New Features
 
