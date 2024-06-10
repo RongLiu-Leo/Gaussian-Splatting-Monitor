@@ -14,6 +14,9 @@ Inspired by these advancements, this codebase supports additional differentiable
 
 The repository supports
 - [AtomGS: Atomizing Gaussian Splatting for High-Fidelity Radiance Field](https://rongliu-leo.github.io/AtomGS/)
+
+https://github.com/RongLiu-Leo/Gaussian-Splatting-Monitor/assets/102014841/fec4e263-3e52-4b54-b188-68926ee29f38
+
 - [2D Gaussian Splatting for Geometrically Accurate Radiance Fields](https://github.com/hbb1/2d-gaussian-splatting)
   
 https://github.com/RongLiu-Leo/Gaussian-Splatting-Monitor/assets/102014841/64385e32-cc4d-4ae6-ab7f-b39c9a824669
