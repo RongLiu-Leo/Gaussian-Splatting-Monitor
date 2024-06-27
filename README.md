@@ -12,6 +12,8 @@ Inspired by these advancements, this codebase supports additional differentiable
 
 ## Applications
 
+Welcome to use GS Monitor for your GS-based projects and let us enrich the README application gallery.👏
+
 The repository supports
 - [AtomGS: Atomizing Gaussian Splatting for High-Fidelity Radiance Field](https://rongliu-leo.github.io/AtomGS/)
 
