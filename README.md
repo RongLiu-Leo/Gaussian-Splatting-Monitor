@@ -102,6 +102,21 @@ python view.py -s <path to COLMAP or NeRF Synthetic dataset> -m <path to trained
 
 This repository owes its foundation to the [original GS repository](https://github.com/graphdeco-inria/gaussian-splatting) and incorporates CUDArasterater code from [diff-gaussian-rasterization](https://github.com/slothfulxtx/diff-gaussian-rasterization). We are grateful to the original authors for their open-source codebase contributions.
 
-## Star
 
-If you use this repository for your research, please consider giving us a star.
+## Citation
+If you find our code or paper helps, please consider giving us a star or citing:
+```bibtex
+@misc{liu2024atomgs,
+    title={AtomGS: Atomizing Gaussian Splatting for High-Fidelity Radiance Field}, 
+    author={Rong Liu and Rui Xu and Yue Hu and Meida Chen and Andrew Feng},
+    year={2024},
+    eprint={2405.12369},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV},
+    url={https://rongliu-leo.github.io/AtomGS/}
+}
+```
+
+## License
+
+This project is licensed under the Gaussian-Splatting License - see the [LICENSE](LICENSE.md) file for details.
