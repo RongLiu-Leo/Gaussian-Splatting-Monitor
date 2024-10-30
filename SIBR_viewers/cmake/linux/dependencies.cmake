@@ -124,7 +124,13 @@ sibr_addlibrary(
 
 # CLUSTER
 #find_package(embree 3.0 REQUIRED PATHS "/data/graphdeco/share/embree/usr/local/lib64/cmake/" )
-find_package(embree 3.0 )
+find_package(embree REQUIRED )
+
+if(embree_VERSION VERSION_GREATER_EQUAL 3.0 AND embree_VERSION VERSION_LESS 4.0)
+    # embree is in the 3.x range
+else()
+    message(FATAL_ERROR "Only Embree 3.x versions are supported.")
+endif()
 
 ###################
 ## Find eigen3
