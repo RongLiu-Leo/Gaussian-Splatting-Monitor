@@ -76,13 +76,14 @@ Please note that this process assumes that you have CUDA SDK **11** installed, n
 ## Interactive Viewers
 Remote Viewer and Gaussian Viewer are integrated into one Viewer and it is driven by ```train.py``` or ```view.py```.
 We provide pre-built binaries for Windows [here](https://drive.google.com/file/d/1DRFrtFUfz27QvQKOWbYXbRS2o2eSgaUT/view?usp=sharing) for an efficient setup.
-If your OS is Ubuntu 22.04, you need to compile the viewer locally:
+If your OS is Ubuntu 24.04, you need to compile the viewer locally:
 ```shell
 # Dependencies
-sudo apt install -y libglew-dev libassimp-dev libboost-all-dev libgtk-3-dev libopencv-dev libglfw3-dev libavdevice-dev libavcodec-dev libeigen3-dev libxxf86vm-dev libembree-dev
+sudo apt install -y libglew-dev libassimp-dev libboost-all-dev libgtk-3-dev libopencv-dev libglfw3-dev libavdevice-dev libavcodec-dev libeigen3-dev libxxf86vm-dev
+# download and unpack https://github.com/RenderKit/embree/releases/download/v3.13.5/embree-3.13.5.x86_64.linux.tar.gz
 # Project setup
 cd SIBR_viewers
-cmake -Bbuild . -DCMAKE_BUILD_TYPE=Release # add -G Ninja to build faster
+cmake -Bbuild . -DCMAKE_BUILD_TYPE=Release -Dembree_DIR:PATH=/path/to/embree-3.13.5.x86_64.linux/lib/cmake/embree-3.13.5/ # add -G Ninja to build faster
 cmake --build build -j24 --target install
 ```
 
