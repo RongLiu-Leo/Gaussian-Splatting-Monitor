@@ -935,18 +935,18 @@ namespace sibr {
 			}
 		}
 
-		uint getModeIndice() const {
-			uint mode, mode_size = 0;
-			for (const auto & [key, val] : bins) {
-				if (val > mode_size) {
-					mode_size = val;
-					mode = key;
-				}
-			}
-			return mode;
-		}
+        // uint getModeIndice() const {
+        // 	uint mode, mode_size = 0;
+        // 	for (const auto & [key, val] : bins) {
+        // 		if (val > mode_size) {
+        // 			mode_size = val;
+        // 			mode = key;
+        // 		}
+        // 	}
+        // 	return mode;
+        // }
 
-		T getBinMiddle(uint bin) const {
+        T getBinMiddle(uint bin) const {
 			return static_cast<T>(min + bin_range * (bin + 0.5));
 		}
 
