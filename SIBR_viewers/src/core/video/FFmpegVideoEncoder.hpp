@@ -104,11 +104,11 @@ namespace sibr {
 
 #ifndef HEADLESS
 		AVFormatContext* pFormatCtx; ///< Format context.
-		AVOutputFormat* fmt; ///< Output format.
-		AVStream* video_st; ///< Output stream.
-		AVCodecContext* pCodecCtx; ///< Codec context.
-		AVCodec* pCodec; ///< Codec.
-		AVPacket * pkt; ///< Encoding packet.
+        const AVOutputFormat* fmt; ///< Output format.
+        AVStream* video_st; ///< Output stream.
+        AVCodecContext* pCodecCtx; ///< Codec context.
+        const AVCodec* pCodec; ///< Codec.
+        AVPacket * pkt; ///< Encoding packet.
 		
 #endif
 		static bool ffmpegInitDone; ///< FFMPEG initialization status.
