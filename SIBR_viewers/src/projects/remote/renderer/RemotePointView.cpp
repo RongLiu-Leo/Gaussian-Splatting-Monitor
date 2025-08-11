@@ -96,7 +96,7 @@ void sibr::RemotePointView::send_receive()
 					sendData[jKeepAlive] = _keepAlive ? 1 : 0;
 					sendData[jViewMat] = std::vector<float>((float*)&_remoteInfo.view, ((float*)&_remoteInfo.view) + 16);
 					sendData[jViewProjMat] = std::vector<float>((float*)&_remoteInfo.viewProj, ((float*)&_remoteInfo.viewProj) + 16);
-					sendData[jRender] = (_item_current == 6) ? 0 : _item_current;
+                    sendData[jRender] = _item_current;
 
 					std::string message = sendData.dump();
 					uint32_t messageLength = message.size();
