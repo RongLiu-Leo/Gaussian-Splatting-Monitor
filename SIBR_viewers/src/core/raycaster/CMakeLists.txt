@@ -23,7 +23,7 @@ include_directories(
 if(WIN32)
 target_link_libraries(${PROJECT_NAME}
 	OpenMP::OpenMP_CXX
-	embree3
+	embree
 	sibr_graphics
 	sibr_assets
 	nanoflann

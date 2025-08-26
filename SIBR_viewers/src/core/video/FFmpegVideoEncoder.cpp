@@ -43,11 +43,11 @@ namespace sibr {
 			SIBR_LOG << "[FFMPEG] Registering all." << std::endl;
 			// Ignore next line warning.
 #pragma warning(suppress : 4996)
-			av_register_all();
-			ffmpegInitDone = true;
-		}
-		
-		sibr::Vector2i sizeFix = size;
+            // av_register_all();
+            ffmpegInitDone = true;
+        }
+
+        sibr::Vector2i sizeFix = size;
 		bool hadToFix = false;
 		if(sizeFix[0]%2 != 0) {
 			sizeFix[0] -= 1;
@@ -79,10 +79,17 @@ namespace sibr {
 		}
 
 		if (video_st) {
-			avcodec_close(video_st->codec);
-			av_free(frameYUV);
-		}
-		avio_close(pFormatCtx->pb);
+            AVCodecContext* codec_ctx = avcodec_alloc_context3(nullptr);
+            if (codec_ctx) {
+                // Initialize codec context with parameters from the stream
+                avcodec_parameters_to_context(codec_ctx, video_st->codecpar);
+
+                // Close the codec context if it's already opened
+                avcodec_free_context(&codec_ctx); // This frees the codec context
+            }
+            av_free(frameYUV);
+        }
+        avio_close(pFormatCtx->pb);
 		avformat_free_context(pFormatCtx);
 
 		needFree = false;
@@ -136,10 +143,15 @@ namespace sibr {
 			return;
 		}
 
-		pCodecCtx = video_st->codec;
-		pCodecCtx->codec_id = fmt->video_codec;
-		pCodecCtx->codec_type = AVMEDIA_TYPE_VIDEO;
-		pCodecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
+        pCodecCtx = avcodec_alloc_context3(NULL); // Allocate a new codec context
+        if (!pCodecCtx) {
+            SIBR_WRG << "[FFMPEG] Could not allocate codec context" << std::endl;
+            return;
+        }
+
+        pCodecCtx->codec_id = fmt->video_codec;
+        pCodecCtx->codec_type = AVMEDIA_TYPE_VIDEO;
+        pCodecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
 		pCodecCtx->width = w;
 		pCodecCtx->height = h;
 		pCodecCtx->gop_size = 10;
@@ -163,27 +175,50 @@ namespace sibr {
 		int res = avcodec_open2(pCodecCtx, pCodec, &param);
 		if(res < 0){
 			SIBR_WRG << "[FFMPEG] Failed to open encoder, error: " << res << std::endl;
-			return;
-		}
-		// Write the file header.
+            av_dict_free(&param);
+            return;
+        }
+        // Write the file header.
 		avformat_write_header(pFormatCtx, NULL);
 
-		// Prepare the scratch frame.
-		frameYUV = av_frame_alloc();
-		frameYUV->format = (int)pCodecCtx->pix_fmt;
-		frameYUV->width = w;
-		frameYUV->height = h;
-		frameYUV->linesize[0] = w;
-		frameYUV->linesize[1] = w / 2;
-		frameYUV->linesize[2] = w / 2;
+        // Prepare the scratch frame
+        frameYUV = av_frame_alloc();
+        if (!frameYUV) {
+            SIBR_WRG << "[FFMPEG] Could not allocate frame" << std::endl;
+            avcodec_free_context(&pCodecCtx); // Free codec context on failure
+            return;
+        }
+        frameYUV->format = pCodecCtx->pix_fmt;
+        frameYUV->width = w;
+        frameYUV->height = h;
 
-		yuSize[0] = frameYUV->linesize[0] * h;
-		yuSize[1] = frameYUV->linesize[1] * h / 2;
+        // Allocate buffer for the frame
+        int ret = av_frame_get_buffer(frameYUV, 32); // Allocate buffer for the frame
+        if (ret < 0) {
+            SIBR_WRG << "[FFMPEG] Could not allocate frame data" << std::endl;
+            av_frame_free(&frameYUV); // Free frame on failure
+            avcodec_free_context(&pCodecCtx); // Free codec context on failure
+            return;
+        }
 
-		pkt = av_packet_alloc();
+        // Calculate sizes
+        yuSize[0] = frameYUV->linesize[0] * h;
+        yuSize[1] = frameYUV->linesize[1] * h / 2;
 
-		initWasFine = true;
-		needFree = true;
+        // Allocate packet
+        pkt = av_packet_alloc();
+        if (!pkt) {
+            SIBR_WRG << "[FFMPEG] Could not allocate packet" << std::endl;
+            av_frame_free(&frameYUV); // Free frame on failure
+            avcodec_free_context(&pCodecCtx); // Free codec context on failure
+            return;
+        }
+
+        initWasFine = true;
+        needFree = true;
+
+        // Cleanup: Free the parameter dictionary
+        av_dict_free(&param);
 #endif
 	}
 
@@ -227,23 +262,38 @@ namespace sibr {
 	}
 
 #ifndef HEADLESS
-	bool FFVideoEncoder::encode(AVFrame * frame)
-	{
-		int got_picture = 0;
+    bool FFVideoEncoder::encode(AVFrame* frame)
+    {
+        // Send the frame for encoding
+        int ret = avcodec_send_frame(pCodecCtx, frame);
+        if (ret < 0) {
+            SIBR_WRG << "[FFMPEG] Failed to send frame for encoding, error: " << ret << std::endl;
+            return false;
+        }
 
-		int ret = avcodec_encode_video2(pCodecCtx, pkt, frameYUV, &got_picture);
-		if (ret < 0) {
-			SIBR_WRG << "[FFMPEG] Failed to encode frame." << std::endl;
-			return false;
-		}
-		if (got_picture == 1) {
-			pkt->stream_index = video_st->index;
-			ret = av_write_frame(pFormatCtx, pkt);
-			av_packet_unref(pkt);
-		}
+        // Receive the encoded packet
+        ret = avcodec_receive_packet(pCodecCtx, pkt);
+        if (ret < 0) {
+            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+                // Not enough data to encode, or end of stream reached
+                return true;
+            }
+            SIBR_WRG << "[FFMPEG] Failed to receive packet, error: " << ret << std::endl;
+            return false;
+        }
 
-		return true;
-	}
+        // Set the stream index and write the packet
+        pkt->stream_index = video_st->index;
+        ret = av_write_frame(pFormatCtx, pkt);
+        if (ret < 0) {
+            SIBR_WRG << "[FFMPEG] Failed to write frame, error: " << ret << std::endl;
+            return false;
+        }
+
+        // Unreference the packet
+        av_packet_unref(pkt);
+        return true;
+    }
 #endif
 
 }

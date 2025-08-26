@@ -264,6 +264,7 @@ namespace sibr
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
 #ifdef GLEW_EGL
+        SIBR_LOG << "Taking the egl path" << std::endl;
 		glfwWindowHint(GLFW_CONTEXT_CREATION_API, (args.offscreen) ?
 													GLFW_EGL_CONTEXT_API :
 													GLFW_NATIVE_CONTEXT_API);
@@ -312,7 +313,9 @@ namespace sibr
 		GLenum err = glewInit();
 #ifdef GLEW_EGL
 //		if (err != GLEW_OK && (!args.offscreen || err != GLEW_ERROR_NO_GLX_DISPLAY)) // Small hack for glew, this error occurs but does not concern offscreen
-		if (err != GLEW_OK && (!args.offscreen )) // Small hack for glew, this error occurs but does not concern offscreen
+        // if (err != GLEW_OK && (!args.offscreen )) // Small hack for glew, this error occurs but does not concern offscreen
+        // according to chatgpt: some drivers still return GLEW_ERROR_NO_GLX_DISPLAY even though the EGL context is fine, you can make the error check ignore that specific code under GLEW_EGL:
+        if (err != GLEW_OK && err != GLEW_ERROR_NO_GLX_DISPLAY)
 #else
 		if (err != GLEW_OK)
 #endif
