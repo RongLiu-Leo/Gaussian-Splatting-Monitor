@@ -20,6 +20,8 @@ from utils.general_utils import safe_state
 from argparse import ArgumentParser
 from arguments import ModelParams, PipelineParams, get_combined_args
 from gaussian_renderer import GaussianModel
+import time
+import numpy as np
 
 def render_set(model_path, name, iteration, views, gaussians, pipeline, background):
     render_path = os.path.join(model_path, name, "ours_{}".format(iteration), "renders")
@@ -27,6 +29,24 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
 
     makedirs(render_path, exist_ok=True)
     makedirs(gts_path, exist_ok=True)
+    fpslist = []
+    for idx, view in enumerate(views):
+        
+        # to calcuate FPS
+        num_frames = 100
+        # Measure the start time
+        start_time = time.time()
+        for _ in range(num_frames):
+            render(view, gaussians, pipeline, background)
+        end_time = time.time()
+        # Calculate the total time taken
+        total_time = end_time - start_time
+        # Calculate FPS
+        fps = num_frames / total_time
+        fpslist.append(fps)
+
+    
+    print(f"Average Rendering FPS: {np.array(fpslist).mean():.2f}")
 
     for idx, view in enumerate(tqdm(views, desc="Rendering progress")):
         rendering = render(view, gaussians, pipeline, background)["render"]
