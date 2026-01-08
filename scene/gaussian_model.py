@@ -215,11 +215,14 @@ class GaussianModel:
     def load_ply(self, path):
         plydata = PlyData.read(path)
 
+        size_bytes = os.path.getsize(path) / (1024.0 * 1024.0)
+        print(f"Loaded PLY size: {size_bytes} MB")
+
         xyz = np.stack((np.asarray(plydata.elements[0]["x"]),
                         np.asarray(plydata.elements[0]["y"]),
                         np.asarray(plydata.elements[0]["z"])),  axis=1)
         opacities = np.asarray(plydata.elements[0]["opacity"])[..., np.newaxis]
-
+        print("Number of points loaded from PLY: ", xyz.shape[0])
         features_dc = np.zeros((xyz.shape[0], 3, 1))
         features_dc[:, 0, 0] = np.asarray(plydata.elements[0]["f_dc_0"])
         features_dc[:, 1, 0] = np.asarray(plydata.elements[0]["f_dc_1"])
