@@ -1,6 +1,6 @@
 <h1 align="center"> Gaussian Splatting Monitor</h1>
 <p align="center">
-<a href="https://drive.google.com/file/d/1DRFrtFUfz27QvQKOWbYXbRS2o2eSgaUT/view?usp=sharing">Pre-built Viewer for Windows</a>
+<a href="https://github.com/RongLiu-Leo/Gaussian-Splatting-Monitor/releases/download/v1.0/GS_Monitor.zip">Pre-built Viewer for Windows</a>
 </p>
 <p align="center">
 <img src="./assets/teaser.gif" />
@@ -75,7 +75,7 @@ Please note that this process assumes that you have CUDA SDK **11** installed, n
 
 ## Interactive Viewers
 Remote Viewer and Gaussian Viewer are integrated into one Viewer and it is driven by ```train.py``` or ```view.py```.
-We provide pre-built binaries for Windows [here](https://drive.google.com/file/d/1DRFrtFUfz27QvQKOWbYXbRS2o2eSgaUT/view?usp=sharing) for an efficient setup.
+We provide pre-built binaries for Windows [here](https://github.com/RongLiu-Leo/Gaussian-Splatting-Monitor/releases/download/v1.0/GS_Monitor.zip) for an efficient setup.
 If your OS is Ubuntu 22.04, you need to compile the viewer locally:
 ```shell
 # Dependencies
